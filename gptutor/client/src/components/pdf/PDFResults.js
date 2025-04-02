@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import ChatPanel from './ChatPanel';
+import MultipleChoice from './MultipleChoice';
 
 const PDFResults = () => {
   const { id } = useParams();
@@ -16,18 +17,31 @@ const PDFResults = () => {
   useEffect(() => {
     const fetchResults = async () => {
       try {
+        console.log('Fetching results for ID:', id);
         const response = await axios.get(`/api/pdf/results/${id}`);
+        console.log('API response data:', response.data);
+        
+        // Debug logging for multiple choice data
+        console.log('Multiple Choice exists:', 'multipleChoice' in response.data);
+        
         setResults(response.data);
         
-        // Set active tab to the first available format
+        // Set active tab based on available data
         if (response.data) {
-          if (response.data.flashcards) setActiveTab('flashcards');
-          else if (response.data.summary) setActiveTab('summary');
-          else if (response.data.cornellNotes) setActiveTab('cornellNotes');
+          if (response.data.flashcards && response.data.flashcards.length > 0) {
+            setActiveTab('flashcards');
+          } else if ('multipleChoice' in response.data) {  // Just check if property exists
+            setActiveTab('multipleChoice');
+          } else if (response.data.summary) {
+            setActiveTab('summary');
+          } else if (response.data.cornellNotes) {
+            setActiveTab('cornellNotes');
+          }
         }
         
         setLoading(false);
       } catch (err) {
+        console.error('Error fetching results:', err);
         setError('Error fetching results. Please try again.');
         setLoading(false);
       }
@@ -200,139 +214,177 @@ const PDFResults = () => {
     );
   };
 
+  const renderMultipleChoice = () => {
+    console.log("Rendering multiple choice section with data:", results?.multipleChoice);
+    
+    // Always render the component even if no questions, it will handle the empty state
+    return <MultipleChoice questions={results?.multipleChoice || []} />;
+  };
+
+  // Debug component to check data structure
+  const renderDebugInfo = () => {
+    if (!results) return null;
+    
+    return (
+      <div className="mt-4 p-4 bg-gray-800 rounded-lg text-xs overflow-auto max-h-40">
+        <h4 className="font-bold mb-2">Available study formats:</h4>
+        <ul>
+          <li>Flashcards: {results.flashcards ? results.flashcards.length : 0} cards</li>
+          <li>Multiple Choice: {results.multipleChoice ? results.multipleChoice.length : 0} questions</li>
+          <li>Summary: {results.summary ? 'Yes' : 'No'}</li>
+          <li>Cornell Notes: {results.cornellNotes ? 'Yes' : 'No'}</li>
+        </ul>
+      </div>
+    );
+  };
+
   if (loading) {
     return (
-      <div className="container">
-        <article aria-busy="true">
-          <h2>Loading results...</h2>
-        </article>
+      <div className="container mx-auto px-4 py-8">
+        <div className="animate-pulse flex flex-col items-center justify-center min-h-[400px]">
+          <div className="h-10 w-10 border-4 border-primary-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+          <h2 className="text-xl font-semibold text-gray-700">Loading results...</h2>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="container">
-        <article>
-          <header>
-            <h1>Error</h1>
-          </header>
-          <p>{error}</p>
-          <footer>
-            <Link to="/upload" role="button">Try Again</Link>
-          </footer>
-        </article>
+      <div className="container mx-auto px-4 py-8">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+          <div className="p-6">
+            <h1 className="text-2xl font-bold text-red-600 mb-4">Error</h1>
+            <p className="text-gray-700 dark:text-gray-300 mb-6">{error}</p>
+            <Link to="/upload" className="btn-primary">
+              Try Again
+            </Link>
+          </div>
+        </div>
       </div>
     );
   }
 
   if (!results) {
     return (
-      <div className="container">
-        <article>
-          <header>
-            <h1>No Results Found</h1>
-          </header>
-          <p>The requested results could not be found.</p>
-          <footer>
-            <Link to="/upload" role="button">Upload New PDF</Link>
-          </footer>
-        </article>
+      <div className="container mx-auto px-4 py-8">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+          <div className="p-6">
+            <h1 className="text-2xl font-bold mb-4">No Results Found</h1>
+            <p className="text-gray-700 dark:text-gray-300 mb-6">The requested results could not be found.</p>
+            <Link to="/upload" className="btn-primary">
+              Upload New PDF
+            </Link>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container-fluid">
-      <article>
-        <header>
-          <hgroup>
-            <h1 className="mb-0">Study Materials</h1>
-            <h2 className="text-muted" style={{ fontSize: '1rem', fontWeight: 'normal' }}>
-              <i className="fas fa-file-pdf"></i> {results.fileName}
-            </h2>
-          </hgroup>
-        </header>
+    <div className="container mx-auto px-4 py-6">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold mb-1">Study Materials</h1>
+        <h2 className="text-sm text-gray-500 flex items-center">
+          <i className="fas fa-file-pdf mr-2"></i> {results.fileName}
+        </h2>
+      </div>
 
-        <nav aria-label="breadcrumb">
-          <ul>
-            {results.flashcards && (
-              <li>
-                <a 
-                  href="#flashcards" 
-                  onClick={(e) => { e.preventDefault(); setActiveTab('flashcards'); }}
-                  className={activeTab === 'flashcards' ? 'secondary' : ''}
-                  role="button"
-                >
-                  <i className="fas fa-clone"></i> Flashcards
-                </a>
-              </li>
-            )}
-            {results.summary && (
-              <li>
-                <a 
-                  href="#summary" 
-                  onClick={(e) => { e.preventDefault(); setActiveTab('summary'); }}
-                  className={activeTab === 'summary' ? 'secondary' : ''}
-                  role="button"
-                >
-                  <i className="fas fa-file-alt"></i> Summary
-                </a>
-              </li>
-            )}
-            {results.cornellNotes && (
-              <li>
-                <a 
-                  href="#cornell" 
-                  onClick={(e) => { e.preventDefault(); setActiveTab('cornellNotes'); }}
-                  className={activeTab === 'cornellNotes' ? 'secondary' : ''}
-                  role="button"
-                >
-                  <i className="fas fa-columns"></i> Cornell Notes
-                </a>
-              </li>
-            )}
-          </ul>
+      <div className="mb-6">
+        <nav className="flex space-x-1 border-b border-gray-200">
+          {results?.flashcards && results.flashcards.length > 0 && (
+            <button
+              onClick={() => setActiveTab('flashcards')}
+              className={`px-4 py-2 font-medium text-sm rounded-t-lg ${
+                activeTab === 'flashcards'
+                  ? 'bg-primary-100 text-primary-700 border-b-2 border-primary-500'
+                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              <i className="fas fa-clone mr-2"></i> Flashcards
+            </button>
+          )}
+          
+          {/* FIXED: Remove array length check - just check if property exists */}
+          {results && 'multipleChoice' in results && (
+            <button
+              onClick={() => setActiveTab('multipleChoice')}
+              className={`px-4 py-2 font-medium text-sm rounded-t-lg ${
+                activeTab === 'multipleChoice'
+                  ? 'bg-primary-100 text-primary-700 border-b-2 border-primary-500'
+                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              <i className="fas fa-tasks mr-2"></i> Quiz
+            </button>
+          )}
+          
+          {results.summary && (
+            <button
+              onClick={() => setActiveTab('summary')}
+              className={`px-4 py-2 font-medium text-sm rounded-t-lg ${
+                activeTab === 'summary'
+                  ? 'bg-primary-100 text-primary-700 border-b-2 border-primary-500'
+                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              <i className="fas fa-file-alt mr-2"></i> Summary
+            </button>
+          )}
+          
+          {results.cornellNotes && (
+            <button
+              onClick={() => setActiveTab('cornellNotes')}
+              className={`px-4 py-2 font-medium text-sm rounded-t-lg ${
+                activeTab === 'cornellNotes'
+                  ? 'bg-primary-100 text-primary-700 border-b-2 border-primary-500'
+                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              <i className="fas fa-columns mr-2"></i> Cornell Notes
+            </button>
+          )}
         </nav>
+      </div>
 
-        {/* Main content section with strict 6:4 ratio */}
-        <div style={{ 
-          display: "flex", 
-          width: "100%", 
-          gap: "1rem",
-          minHeight: "700px"
-        }}>
-          {/* Study materials - exactly 60% width */}
-          <div style={{ width: "60%", overflow: "auto" }}>
-            <article>
-              {activeTab === 'flashcards' && renderFlashcards()}
-              {activeTab === 'summary' && renderSummary()}
-              {activeTab === 'cornellNotes' && renderCornellNotes()}
-            </article>
-          </div>
-          
-          {/* Vertical divider */}
-          <div 
-            aria-hidden="true" 
-            style={{ 
-              width: "2px",
-              background: "var(--card-border-color)",
-              margin: "0" 
-            }}
-          ></div>
-          
-          {/* Chat panel section - exactly 40% width */}
-          <div style={{ width: "40%", padding: "0" }}>
-            <ChatPanel pdfId={id} fileName={results.fileName} />
+      {/* Main content section with 6:4 ratio */}
+      <div className="flex flex-col md:flex-row gap-6">
+        {/* Study materials - 60% width */}
+        <div className="w-full md:w-3/5">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 h-full">
+            {activeTab === 'flashcards' && renderFlashcards()}
+            {activeTab === 'multipleChoice' && renderMultipleChoice()}
+            {activeTab === 'summary' && renderSummary()}
+            {activeTab === 'cornellNotes' && renderCornellNotes()}
+            
+            {/* Add a debug section that shows what tabs should be visible */}
+            <div className="mt-8 p-4 bg-gray-100 dark:bg-gray-700 rounded-lg text-xs">
+              <p>Debug Info:</p>
+              <ul>
+                <li>Active Tab: {activeTab}</li>
+                <li>Flashcards available: {results?.flashcards ? 'Yes' : 'No'} (Count: {results?.flashcards?.length || 0})</li>
+                <li>Multiple Choice available: {results?.multipleChoice ? 'Yes' : 'No'} (Count: {results?.multipleChoice?.length || 0})</li>
+                <li>Summary available: {results?.summary ? 'Yes' : 'No'}</li>
+                <li>Cornell Notes available: {results?.cornellNotes ? 'Yes' : 'No'}</li>
+              </ul>
+            </div>
           </div>
         </div>
+        
+        {/* Chat panel section - 40% width */}
+        <div className="w-full md:w-2/5">
+          <ChatPanel pdfId={id} fileName={results.fileName} />
+        </div>
+      </div>
 
-        <footer className="mt-4">
-          <Link to="/upload" role="button" className="contrast outline">
-            <i className="fas fa-arrow-left"></i> Process Another PDF
-          </Link>
-        </footer>
-      </article>
+      <div className="mt-6">
+        <Link 
+          to="/upload" 
+          className="btn-outline flex items-center w-auto inline-flex"
+        >
+          <i className="fas fa-arrow-left mr-2"></i> Process Another PDF
+        </Link>
+      </div>
     </div>
   );
 };

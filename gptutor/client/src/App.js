@@ -1,28 +1,33 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import './App.css';
-
-// Layout Components
-import Navbar from './components/layout/Navbar';
+import React, { useEffect } from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Home from './pages/Home';
-import About from './pages/About';
+import AppLayout from './components/layout/AppLayout';
 import UploadPDF from './components/pdf/UploadPDF';
 import PDFResults from './components/pdf/PDFResults';
-import NotFound from './pages/NotFound';
+import Dashboard from './pages/Dashboard';
+
+// Only import Tailwind
+import './index.css';
 
 function App() {
+  // Force dark mode
+  useEffect(() => {
+    document.documentElement.classList.add('dark');
+  }, []);
+
   return (
     <Router>
-      <main className="container-fluid">
-        <Navbar />
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/about" element={<About />} />
+      <Routes>
+        {/* Public route for landing page */}
+        <Route path="/" element={<Home />} />
+        
+        {/* Protected routes with sidebar */}
+        <Route element={<AppLayout />}>
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/upload" element={<UploadPDF />} />
           <Route path="/results/:id" element={<PDFResults />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </main>
+        </Route>
+      </Routes>
     </Router>
   );
 }

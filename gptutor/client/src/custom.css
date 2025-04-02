@@ -1,5 +1,30 @@
 /* Custom styles to complement Pico CSS */
 
+/* Reduce the default font size */
+:root {
+  --font-size: 14px; /* Default Pico is 16px */
+  --typography-spacing-vertical: 1.25rem; /* Adjust vertical spacing to match smaller text */
+}
+
+/* Make headings a bit smaller */
+h1 { --font-size: 2.25rem; }
+h2 { --font-size: 1.75rem; }
+h3 { --font-size: 1.25rem; }
+h4 { --font-size: 1.15rem; }
+h5 { --font-size: 1rem; }
+
+/* Landing page styles */
+.hero {
+  padding: 4rem 1rem;
+  text-align: center;
+}
+
+.tagline {
+  font-size: 1.25rem;
+  opacity: 0.8;
+  margin-bottom: 2rem;
+}
+
 /* Add spacing between action buttons in tables */
 table .grid {
   grid-gap: 0.5rem;
@@ -520,3 +545,65 @@ table .grid {
 }
 
 /* Add any additional custom styles here */
+
+/* Sidebar styles */
+.sidebar {
+  width: 220px; /* Reduced from 250px */
+  height: 100vh;
+  background-color: var(--card-background-color);
+  border-right: 1px solid var(--card-border-color);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 900;
+}
+
+.sidebar-header {
+  padding: 1rem;
+  border-bottom: 1px solid var(--card-border-color);
+}
+
+.sidebar-header h2 {
+  margin: 0;
+  font-size: 1.4rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Content layout adjustments */
+.main-with-sidebar {
+  margin-left: 220px; /* Match sidebar width */
+  padding: 1rem;
+  min-height: 100vh;
+}
+
+/* Remove burger button and mobile specific styles */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 220px;
+    transform: none;
+  }
+  
+  .main-with-sidebar {
+    margin-left: 220px;
+  }
+}
+
+/* Remove all sidebar-related styles */
+/* Removing sidebar styles */
+.sidebar,
+.sidebar-header,
+.sidebar-nav,
+.sidebar-item,
+.sidebar-expand-btn,
+.sidebar-submenu,
+.sidebar-subitem,
+.expand-icon,
+.sidebar-footer,
+.main-with-sidebar,
+.sidebar-toggle {
+  /* These styles are being removed */
+}
