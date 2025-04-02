@@ -925,6 +925,137 @@
       ],
       "createdAt": "2025-04-01T12:35:58.910Z",
       "isMockData": false
+    },
+    {
+      "id": "1743515518855",
+      "fileName": "Lec8A IP Management F1 - notes.pdf",
+      "originalText": "\n\n©  2024 Lotto Lai\nLotto Lai\nQuality System\nSep 2017\nCOMP 3511A\nLegal Aspects and Ethics of Computing\nLecture 8: IP Management(ISO56005)\nLotto Lai\n2024\n1\n\n©  2024 Lotto Lai\nContent\n•Introduction of IP\n•Overview Patents System in Hong Kong\n•Patent System in China and Comparison with USA\n•IP Strategy\n•IP Management Standards (ISO 56005)\n2\n\n©  2024 Lotto Lai\nWhat is Intellectual Property?\n•Intellectual Property exists in works including but not limited \nto actual products and processes; artistic, musical and literary \nworks; and presentation of business ideas. \n•Intellectual Property is a collection of rights, with the major IP \nbeing copyright (protecting original creations), patents\n(protecting new inventions) and trademarks(protecting signs \nand logos).\n3\n\n©  2024 Lotto Lai\nWhat is Intellectual Property?\n4\nhttps://www.youtube.com/watch?v=TeUypowc2pU\n\n©  2024 Lotto Lai\nIP and its sources\n5\n\n©  2024 Lotto Lai\nGuideline for Protecting Confidential Information\n6\n\n©  2024 Lotto Lai\nFour IP Protection Options\n•It includes:\n1.Patents(Inventions such as processes and machines; Controversial \nareas such as business method and software)\n2.Copyright(Original work of authorship and Copyrightable matter \nsuch as software, manuals and company documents)\n3.Trademark(Word, phase or symbol for slogan, company name and \nproduct line)\n4.Trade Secret(Any Confidential Info that gives the owner \ncompetitive benefit or economic value)\n7\n\n©  2024 Lotto Lai\nPatents\n•A patent is granted by the patent office in each country or region to confer \nmonopoly rights over a new inventionin that country. \n•Patents protect inventions of products and processes. They arise often, but not \nexclusively, from research in science, medicine, and engineering fields. \n•The invention must be new (novel) and involve an inventive step, i.e., not be \nobvious to a person skilled in the art. \n•Further, the invention must be useful, i.e., capable of industrial application.\n•You should disclose your invention to Knowledge Transfer and Entrepreneurship \nOffice (KTEO), prior to any publication or presentation in any paper or electronic \nform, such as conference presentation, journal, posters and website, because \nsuch actions of public disclosure before filing a patent application damage \nnovelty and thus the ability to obtain a valid patent.\n8\n\n©  2024 Lotto Lai\nRegistered Designs (Design Patent)\n•A registered design, called a design patent in some jurisdictions (the \nofficial power to make legal decisions and judgments), protects the \nnew design(the aesthetic as opposed to functional design) of an article \napplied by industrial process, such as furniture design, jewelry design, \ngraphic design, etc. \n•Registration confers an exclusive right to manufacture and trade in articles \nmade according to such a design or a design not substantially different \nfrom it.\n•You should disclose your design to the PolyUprior to any publication or \npresentation in any paper or electronic form, such as conference \npresentation, journal, posters and website, because such actions of public \ndisclosure before filing a registration damage novelty and thus the ability \nto obtain a registration.\n9\n\n©  2024 Lotto Lai\nWhat do you need to consider before you file a \npatent application?\n10\nhttps://www.youtube.com/watch?v=pRjN5YpWWpg\n\n©  2024 Lotto Lai\nCopyright\n•Copyright protects original work, i.e., work not copied from others. \n•Copyright does not protect an idea but the form of expression of the idea. \nThe expression can take the form of books, paintings, movies, pictures, \ncomputer programs, music and even performance. \n•A copyright owner has the right to stop others from doing any of the acts \nrestricted by copyright, such as copying his/her work in any material form, \nissuing copies to the public, making copies available on the internet, \nbroadcasting works by wireless or cable, adapting it and so on.\n•Copying refers also to storing a copyright work in any medium by electronic \nmeans. \n•Software source code(human readable programs) is also protected as \ncopyright.\n11\n\n©  2024 Lotto Lai\nWhat is Copyright?\n12\nhttps://www.youtube.com/watch?v=Je8rTbHPaoo\n\n©  2024 Lotto Lai\nCopyright Protection\n13\n\n©  2024 Lotto Lai\nTrademarks\n•A trademark is a distinctive sign that distinguishes the product or \nservice associated with it from those of other entities. \n•A trademark is typically a name, word, phrase, logo, symbol, \ndesign image or a combination of these elements.\n•Some well-known examples are “Coca-Cola”, “iPad”, etc. While a \nuser of an unregistered trademark may still enjoy some protection, \na registered trademark owner holds a much stronger position to \nstop infringers.\n•“iPad” trademark story at https://www.businessinsider.com/how-\napple-won-the-ipad-trademark-2015-3\n14\n\n©  2024 Lotto Lai\nHow to register a trademark in Hong Kong?\n15\nhttps://www.youtube.com/watch?v=JsMvAV0brZw\n\n©  2024 Lotto Lai\nTrade Secrets\n•A trade secret is also loosely referred to as “confidential \ninformation”. \n•A trade secret may or may not be patentable. \n•It is proprietary know-how which can be an invention or \nformula. \n•Unlike the IP described above, a trade secret has no expiry \ndateas long as it can be kept confidential and still has \ndistinctive value.\n16\n\n©  2024 Lotto Lai\nWhat is Trade Secrets?\n17\nhttps://www.youtube.com/watch?v=Wka2Bkiq3Qk\n\n©  2024 Lotto Lai\nDifferences Between Patents, Copyrights, \nTrademarks, and Trade Secrets\n18\nhttps://www.youtube.com/watch?v=3UXuHXNryZs\n\n©  2024 Lotto Lai\nExcise to understand the different\n19\n\n©  2024 Lotto Lai\nPolling\n20\n\n©  2024 Lotto Lai\nOverview Patents System in Hong Kong\n21\n\n©  2024 Lotto Lai\nPrior to 1 July 1997\nx\nx\nBefore 1997, a person who \nhad obtained a patent in the \nUK or European patent \ndesignating the UK could \nhave his patent registered in \nHong Kong within five years \nof its grant.\nThe patent would be effective \nin Hong Kong for so long as \nthe corresponding UK or \nEuropean patent remained in \nforce.\n\n©  2024 Lotto Lai\nSince 1 July 1997\nThe enactment of a new Patents \nOrdinance (Cap. 514) in June \n1997.\nUnder the Ordinance, there are \ntwo types of patents in Hong \nKong\ni)Standard Patent\nii)Short-term Patent\nThe max. term of protection of \nthese two types of patents is 20 \nyears and 8 years respectively.\n“Re-registration” System is \nemployed. Patent granted by \none of three “designated patent \noffices” – SIPO, UKPO & EPO.\nx\nxx\nx\n(SIPO) UKPO\nEPO\nState Intellectual Property Office (SIPO) (國家知識產權局)\nUK Patent Office (UKPO) (英國專利局)\nEuropean Patent Office (EPO) (歐洲專利局)\n\n©  2024 Lotto Lai\nNew Patent System in Hong Kong to Launch on 19 \nDecember 2019\nx\nxx\nx\n(SIPO) UKPO\nEPO\nOn 19 December 2019, a new \npatent system entered into force \nin Hong Kong. The new system \nintroduces a so-called original \ngrant patent (OGP) system for \nstandard patents, allowing \nstandard patent applications to \nbe filed directly in Hong Kong \nwithout having to file a patent \napplication outside Hong Kong.\nStandard patent (O) application \ncan be filed directly in Hong \nKong.\nStandard patent (R) is to file an \nearlier corresponding patent \napplication with one of the 3 \ndesignated patent offices.\n國家知識產權局（SIPO）\n英國專利局（UKPO）\n歐洲專利局（EPO）\n原授標準專利申請\n轉錄標準專利申請\n\n©  2024 Lotto Lai\nHong Kong Original Patent System\n25\nhttps://www.youtube.com/watch?v=rjRS9fE0kFU\n\n©  2024 Lotto Lai\nApplying for a Standard Patent\nhttps://www.ip.gov.hk/en/types-of-ip/patents/standard-patent/index.html\n\n©  2024 Lotto Lai\nThe Patent Laws of Hong Kong\n•Principal legislation\n–Patents Ordinance(Cap. 514)\n•Subsidiary legislation\n–Patents (Designation of Patent Offices) Notices (Cap. 514A)\n–Patents (Transitional Arrangements) Rules (Cap. 514B)\n–Patents (General) Rules (Cap. 514C)\n27\n\n©  2024 Lotto Lai\nCurrent Patent System in Hong Kong\n28\nStandard PatentShort-term Patent\nMaximum Protection Term20 years8 years\nPre-application/grantFirst applied/registered in\na designated patent office\n[CNIPA/UKIPO/EPO(UK)]\nNot required \nNo. of Claims per applicationUnlimited1 independent claim\nFormality ExaminationConducted by \nPatents Registry\nConducted by Patents Registry\nSubstantive ExaminationConducted by\nDesignated patent office\nNot required\n\n©  2024 Lotto Lai\nCurrent Patent System –Standard Patent\n•Standard Patent Application (Re-registration)\n–1\nst\nStage: file a request to record in HK within 6 months after \npublicationof the designated patent application in the designated \npatent office\n–2\nnd\nStage: file a request for registration and grant in HK within 6 \nmonths after -\n•publication of the request to record in HK; or\n•the grant of the designated patent by the designated patent office,\nwhichever is later\n29\n\n©  2024 Lotto Lai\nCurrent Patent System –Short-Term Patent\n•Short-Term Patent Application\n–Limited to one independent claim\n–Search report in relation to the invention\n–Proprietor to establish the validity of the patent in enforcement \nproceedings before the court\n30\n\n©  2024 Lotto Lai\nhttps://www.info.gov.\nhk/gia/general/20191\n0/11/P201910110048\n7.htm\n\n©  2024 Lotto Lai\nSummary of New Patent System\nStandard Patent\n(OGP*)\nStandard Patent\n(Re-registration)\nShort-term Patent\nProtection Term20 years20 years8 years\nPre-application/grantNot requiredFirst applied/registered in\na designated patent office\n[CNIPA/UKIPO/EPO(UK)]\nNot required \nNo. of Claims per \napplication\nUnlimitedUnlimited1 independent claim\nFormality ExaminationConducted by Patents \nRegistry\nConducted by \nPatents Registry\nConducted by Patents \nRegistry\nSubstantive \nExamination\nConducted by Patents \nRegistry\nConducted by\nDesignated patent office\nNot required\n32\n*Original Grant Patent (OGP) \n\n©  2024 Lotto Lai\nPreparation for New Patent System\n•To finalize the examination guidelines\n•To train the patent examiners for conducting substantive examination\n•To set up a new IT system for filing and processing patent cases\n•To publicize and promote the new patent system\n•To establish a full-fledged regulatory regime for local patent \npractitioners with transitional measures in the medium and long terms\n33\n\n©  2024 Lotto Lai\nOnline Search System\n•https://esearch.ipd.g\nov.hk/nis-pos-\nview/#/?lang=en\n\n©  2024 Lotto Lai\nHK Patent Statistics\nYearShort-term PatentPublished Standard Patent onlyGranted Standard Patent only\n201451060335917\n201558864435525\n201661394424236\n2017584111981524\n201866914972307\n201915824520\n0\n2,000\n4,000\n6,000\n8,000\n10,000\n12,000\n14,000\n16,000\n18,000\n123456\nGranted Standard Patent only\nPublished Standard Patent only\nShort-term Patent\n2014     2015     2016      2017     2018      2019\n\n©  2024 Lotto Lai\n1)If your write the IP \nyourself, it may be many \nweakness point\n2)If write by lawyer and \ncleverly, strong claim \nprotection happen\n3)Usually, we write both on \nproduct and IP system, it \nis more safe. (Two claim \nstronger than one claim) \n\n©  2024 Lotto Lai\nIP Strategy –Use Patent Databases\n•Google Patents\n–https://patents.google.com/\n•Espacenetof European Patent Office (EPO)\n–https://worldwide.espacenet.com/advancedSearch?locale=en_EP\n•Patent Inspiration\n–https://www.patentinspiration.com/\n37\nFact-finding\nFact-based \nDecision-making\n\n©  2024 Lotto Lai\nAn Overview of Chinese Patent System\n38\n\n©  2024 Lotto Lai\nTypes of Patent in China\n39\nTypeSubject MatterTerm (Year)\nInventionAny new technical solution relating to a product, a \nprocessor improvement thereof\n20\nUtility ModelAny new technical solution relating to the shape, \nthe structure, or their combination, of a product, \nwhich is fit for practical use\n10\nDesignAny new design of the shape, the pattern, or their \ncombination, or the combination of the color with \nshape or pattern, of a product, which creates an \naesthetic feeling and is fit for industrial application\n10\n\n©  2024 Lotto Lai\nComparison on Types of Patent (China vs USA)\nChinaUSA\nInvention Patent\n(20 years, substantive examination)\n“Utility Patent”\n(20 years, substantive examination)\nUtility Model Patent\n(10 years, preliminary examination only)\nNo\nDesign Patent\n(10 years, preliminary examination only)\nDesign Patent\n(14 years, substantive examination)\nNo\n(New plant variety protection certificate under\nNew Plant Variety Protection Regulation, 20/15 \nyear terms)\nPlant Patent\n(20 years, substantive examination)\n40\n\n©  2024 Lotto Lai\nComparison on Types of Invention Application\n(China vs USA)\nChinaUSA\nInvention Patent Application“Utility” Patent Application\nDivisional ApplicationDivisional Application\nNoContinuation Application\nNoContinuation-In-Part Application\nNoProvisional Application\n41\n\n©  2024 Lotto Lai\nUtility Model Patent\n•Subject Matter: Products Only\n–Having definite shape and structure\n–Certain structures: Coating(s) on a substrate\n•Preliminary Examination\n–Formality requirements: claims + description + drawings\n–Obvious substantive defects: novelty\n•Protection term\n–10 years\n•Less pendency: generally, issued within 6 months from filing\n42\n\n©  2024 Lotto Lai\nUtility Model Filing Strategy\n•Defensive\n–Immediate need in the market; same protection strength as invention \npatent\n•Aggressive\n–Very important inventions\n–Dual filing of both an invention application and a utility model \napplication\n–Give up utility model patent when invention granted to avoid double \npatenting\n43\n\n©  2024 Lotto Lai\nDual Filing Strategy\n•Paris Route\n44\n\n©  2024 Lotto Lai\nIP Management Standard\n45\n\n©  2024 Lotto Lai\n46\nInterpretation of ISO 56005 – IP management\nMs. Fan Zhang (张帆)\n\n©  2024 Lotto Lai\nMilestone of ISO 56005\n47\n\n©  2024 Lotto Lai\nISO 56005 Scope\n•Efficient management of IP is key to support the \nprocess of innovation, is essential for \norganizations’ growth and protection, and is their \nengine for competitiveness.\n•This document proposes guidelines for supporting \nthe role of IP within innovation management. It \naims\n•to address the following issues concerning IP \nmanagement at strategic and operational levels:\n–Creating an IP strategy to support innovation in an \norganization;\n–Establishing systematic IP management within the \ninnovation processes;\n–Applying consistent IP tools and methods in \nsupport of efficient IP management.\n•This document can be used for any type of \ninnovation activities and initiatives.\n48\n\n©  2024 Lotto Lai\nIP management activities contribute to \ninnovation management\n49\n\n©  2024 Lotto Lai\nStructure of IP management in ISO 56005\n50\n\n©  2024 Lotto Lai\nStructure of the Document\n51\n\n©  2024 Lotto Lai\nCore: Realization of Value\n•The management of IP should create value for all relevant stakeholders.\n•This includes \n–long-term and short-term values; \n–Explicit and implicit value;\n–Financial and non-financial value.\n52\n\n©  2024 Lotto Lai\nIP Management Framework\n•The organization should determine external and internal issues and considerations that are \nrelevant to its organizational objectives and that affect its ability to achieve its intended IP \nstrategic objectives.\n•IP management Responsibility (4.3)\n–Top management should ensure that the responsibilities and authority for relevant roles are assigned \nand communicated within the organization\n•Culture (4.4)\n–The organization should promote an organizational culture that supports the effective management of \nIP.\n•Human Capital (4.5)\n–The organization should ensure the availability of competent people to support the effective \nmanagement of IP.\n•Financial Considerations (4.6)\n–For the effective management of IP, it is important to recognize that there are a variety of costs \nassociated with developing and maintaining an IP portfolio.\n•Legal Considerations (4.7)\n–The organization should have a general understanding of legal considerations related to IP \nmanagement.\n53\n\n©  2024 Lotto Lai\nIP Strategy\n•The organization should have \nan IP strategy which should \nbe integrated as a key \nelement of its innovation \nstrategy. Furthermore, the \norganization's IP strategy \nshould align with and \nsupport its business strategy.\n•The relationship between an \norganization's business \nstrategy, its innovation \nstrategy and the IP strategy \nshows in the fDigure.\n54\n\n©  2024 Lotto Lai\nIP Management in the Innovation Process\n•Innovation is non-linear and iterative, and comprises five interacting innovation \nprocesses (ISO 56002:2019)\n55\nIntentValue\nWhy\nInput\nHow\nOutput\nWhy\nInput\nHow\nOutput\nWhy\nInput\nHow\nOutput\nWhy\nInput\nHow\nOutput\nWhy\nInput\nHow\nOutput\n\n©  2024 Lotto Lai\nThe Expected Most Popular Standard\n56\n\n©  2024 Lotto Lai\n57",
+      "flashcards": [
+        {
+          "question": "What is Intellectual Property (IP)?",
+          "answer": "Intellectual Property is a collection of rights that includes copyright (protecting original creations), patents (protecting new inventions), and trademarks (protecting signs and logos)."
+        },
+        {
+          "question": "What are the four main options for IP protection?",
+          "answer": "The four IP protection options are: 1) Patents (for inventions), 2) Copyright (for original works), 3) Trademarks (for distinctive signs), and 4) Trade Secrets (confidential information that provides economic value)."
+        },
+        {
+          "question": "What is the purpose of a patent?",
+          "answer": "A patent grants monopoly rights over a new invention, protecting it from unauthorized use and requiring that the invention be novel, involve an inventive step, and be useful for industrial application."
+        },
+        {
+          "question": "What does copyright protect?",
+          "answer": "Copyright protects original works of authorship, meaning it safeguards the expression of ideas in various forms such as books, music, and software, but not the ideas themselves."
+        },
+        {
+          "question": "What distinguishes a trademark?",
+          "answer": "A trademark is a distinctive sign, such as a name, logo, or phrase, that identifies and distinguishes the products or services of one entity from those of others."
+        },
+        {
+          "question": "What is a trade secret?",
+          "answer": "A trade secret is proprietary knowledge or information that provides a business advantage and can include formulas or processes; it has no expiry date as long as it remains confidential."
+        },
+        {
+          "question": "What must be disclosed before filing a patent application?",
+          "answer": "Inventors must disclose their invention to the Knowledge Transfer and Entrepreneurship Office (KTEO) prior to any public disclosure, such as presentations or publications, to preserve the novelty of the patent."
+        },
+        {
+          "question": "What is the difference between patents and copyrights?",
+          "answer": "Patents protect new inventions, while copyrights protect the expression of ideas in original works; patents require novelty and utility, whereas copyrights protect the form of expression."
+        },
+        {
+          "question": "How does a registered trademark differ from an unregistered trademark?",
+          "answer": "A registered trademark provides stronger legal protection and exclusive rights against infringement compared to an unregistered trademark, which offers limited protection."
+        },
+        {
+          "question": "What happens if a patent is disclosed publicly before filing?",
+          "answer": "Public disclosure before filing a patent application can damage the novelty of the invention and hinder the ability to obtain a valid patent."
+        }
+      ],
+      "summary": "The text provides a comprehensive overview of Intellectual Property (IP) management, including its types, protection mechanisms, and the patent systems in Hong Kong and China, along with a comparison to the USA. \n\nIntellectual Property encompasses rights related to creations such as products, processes, artistic works, and business ideas, primarily categorized into copyrights, patents, trademarks, and trade secrets. Copyright protects original expressions of ideas, while patents grant monopoly rights for new inventions that must be novel, involve an inventive step, and be useful. Trademarks serve to distinguish products or services from others, and trade secrets consist of confidential information that provides competitive advantages.\n\nIn Hong Kong, the patent system underwent significant changes with the enactment of the Patents Ordinance in 1997, introducing two types of patents: Standard Patents with a maximum protection term of 20 years and Short-term Patents lasting 8 years. A notable update occurred on December 19, 2019, allowing direct filing of Standard Patent applications in Hong Kong through an Original Grant Patent system. Prior to this, patents had to be registered based on applications from designated patent offices such as the State Intellectual Property Office (SIPO) or the European Patent Office (EPO).\n\nOverall, the text emphasizes the importance of IP management standards, specifically ISO 56005, in formulating effective IP strategies and ensuring the protection of intellectual assets. Understanding the nuances of IP regulations is critical for businesses and individuals looking to safeguard their innovations and creative expressions.",
+      "cornellNotes": {
+        "cues": [
+          "What is Intellectual Property?",
+          "Types of IP Protection",
+          "Patents",
+          "Registered Designs",
+          "Copyright",
+          "Trademarks",
+          "Trade Secrets",
+          "Differences Between IP Types",
+          "Overview of Patent System in Hong Kong"
+        ],
+        "notes": [
+          "Intellectual Property (IP) includes various works: products, processes, artistic creations.",
+          "Major types of IP: copyright (original creations), patents (new inventions), trademarks (signs/logos).",
+          "Four IP Protection Options: Patents, Copyright, Trademark, Trade Secret.",
+          "Patents grant monopoly rights over new inventions in a specific country.",
+          "Inventions must be novel, non-obvious, and useful for patent protection.",
+          "Must disclose inventions to KTEO before public disclosure to maintain novelty.",
+          "Registered Designs protect aesthetic designs of articles; registration grants exclusive manufacturing rights.",
+          "Copyright protects the expression of ideas in various forms, not the ideas themselves.",
+          "Copyright owners can restrict copying, distribution, and adaptation of their works.",
+          "Trademarks distinguish products/services; registration provides stronger protection.",
+          "Trade Secrets are confidential information with no expiry as long as they remain secret.",
+          "Key differences between Patents, Copyrights, Trademarks, and Trade Secrets.",
+          "Prior to 1 July 1997, UK or European patents could be registered in Hong Kong within five years."
+        ],
+        "summary": "The lecture covers the fundamentals of Intellectual Property (IP), including its definition, types of protection such as patents, copyrights, trademarks, and trade secrets. It discusses the patent system in Hong Kong, emphasizing the importance of novelty and disclosure before filing for protection. Additionally, it highlights the role of design patents and the differences among the various IP types."
+      },
+      "multipleChoice": [
+        {
+          "question": "What is the primary purpose of Intellectual Property (IP)?",
+          "options": [
+            "To protect the environment",
+            "To confer rights over original creations and inventions",
+            "To regulate business practices",
+            "To ensure product safety standards"
+          ],
+          "correctAnswer": 1
+        },
+        {
+          "question": "Which of the following is NOT one of the four IP protection options mentioned?",
+          "options": [
+            "Patents",
+            "Copyright",
+            "Trademark",
+            "Public Domain"
+          ],
+          "correctAnswer": 3
+        },
+        {
+          "question": "What is required for an invention to be granted a patent?",
+          "options": [
+            "It must be a copy of an existing product",
+            "It must be useful and involve an inventive step",
+            "It must be a design patent",
+            "It must be publicly disclosed before filing"
+          ],
+          "correctAnswer": 1
+        },
+        {
+          "question": "What does copyright protect?",
+          "options": [
+            "Ideas",
+            "The form of expression of ideas",
+            "The underlying concepts of a product",
+            "The manufacturing process of an invention"
+          ],
+          "correctAnswer": 1
+        },
+        {
+          "question": "Before filing a patent application, what should you disclose to the Knowledge Transfer and Entrepreneurship Office (KTEO)?",
+          "options": [
+            "Your business strategy",
+            "Your invention",
+            "Your competitor's patents",
+            "Your market research"
+          ],
+          "correctAnswer": 1
+        }
+      ],
+      "createdAt": "2025-04-01T13:51:58.855Z",
+      "isMockData": false
     }
   ]
 }
