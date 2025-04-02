@@ -1056,6 +1056,125 @@
       ],
       "createdAt": "2025-04-01T13:51:58.855Z",
       "isMockData": false
+    },
+    {
+      "id": "1743574014762",
+      "fileName": "Lec0 - Introduction of COMP 3511A 2024 v1a.pdf",
+      "originalText": "\n\n© 2024 Lotto Lai\nLotto Lai\nQuality System\nSep 2017\nCOMP 3511_A\nLegal Aspects and Ethics of Computing\nLotto Lai\n2024\n1\n\n© 2024 Lotto Lai\nContent\n2\nLectureContentLectureContent\n1\n(15 Jan)\nSubject orientation \nIntroduction of Legal Aspects and Ethics of Computing\n8\n(11 Mar)\nIP Management\n-ISO 56005\n2\n(22 Jan)\nEthical Management & Analysis9\n(18 Mar)\nEntrepreneurship (1)\n-Sustainable Development\nProject Proposal (Gp. 10%) *3\n3\n(29 Jan)\nInfoSec Ethic Ethics\n-ISO 27001 series\n10\n(25 Mar)\nEntrepreneurship (2)\n-SWOT & QstartupMS\n(Assignment 2 –Personal SWOT) (Ind. 15%) *1\n4\n(5 Feb)\nAI Ethic\n(Group Project Introduction)\n(Assignment 1) (Ind. 15%) *1\n11\n(8 Apr)\nProfessional Bodies and Code of Conduct\nGuest Lecture In-class \n-ICAC\nGroup Project PPT (Gp. 20%) *4\n5\n(19 Feb)\nLegal Aspects (1) \n-Privacy Law in Hong Kong & GDPR\n12\n(15 Apr)\nFinal Project Presentations A (Gp. 10%) *5\n6\n(26 Feb)\nLegal Aspects (2) \n-Computer Related Crime Issues \n13\n(22 Apr)\nFinal Project Presentations B (Gp. 10%) *5\n7\n(4 Mar)\nQuiz / Test (Ind. 30%) *2\n100% Continuous Assessment\nNo Examination\n\n© 2024 Lotto Lai\nCourse Requirement\n3\nSpecific assessment methods/tasks % weighting\nIndividual Assessment60%\n1. Assignment x2 (Individual)30%\n2. Test (Individual)30%\nGroup Assessment40%\n3. Project proposal (Group)10%\n4. Project PPT (Group)20%\n5. Project presentations (Group)10%\nTotal 100 %\n\nOur Objectives\n•This subject aims to equip students with the knowledge regarding the \nsocial responsibilities & ethics of the computing professionals, who \nhold a significant position in the information age, including but not \nlimited to:\n–To be fully aware of the basic set of legal, ethical and security responsibilities;\n–To be in a position to think and act as (junior) computing professionals;\n–To be in a position to deal with ethical dilemmas and legal challenges that they \ncan expect to face when they start work.\n•During the critical situation, as professional should know what is right \nthing to do!\n\nIntended Learning Outcomes\nCategory A: Professional/academic knowledge and skills\n•Be aware of the ethical and legal issues surrounding the use of computers; \n•Apply the conceptual tools provided in the course to develop analytical skillsfor \ndetermining what to do in ethical and legal decision making\nCategory B: Attributes for all-roundedness\n•Communicate effectively both verbally and in writing as a professional in \ncomputing/IT; \n•Learn independentlyfor problem solving and solution seeking;\n•Think and reason critically, especially on different issues related to computing/IT \nprofessional in the society.\n\nCourse Structure\nBasic of Ethics\nPrivacy\nIntellectual \nProperty\nProfessional / \nEntrepreneurs\nInfoSecAI\nPrinciples of \nEthics\nLegal\n\nIndividual Assessment (60%)\n•Two Assignments and One Quiz/Test\n•Assignment 1(Using self-driving car moral machine to understand \nyour decision making based on which ethics philosophies) (15%)\n•Assignment 2(Using personal SWOT analysis to understand yourself \nand matching your expected career as well as identify what ethics \nissues related to your ideal job) (15%)\n•Quiz/Test (30%)\n–MC plus Short questions\n\nGroup Assessment (40%)\n•Select one case of ethics related issues (Provided by Instructor) \nand proposed different measures to reduce the risk and \nprevent such ethical issues happen again.\n•4-5 students per group\n•Group project Proposal (10%)\n•Group project PPT (20%) (PPT with some notes description)\n•Group Presentation (10%)\n–10 min for presentation and 5 min for Q&A\n–Typically, 5 student a group and each student has 2 min for his/her \npart for presentation.\n\nGroup Project Presentation Format\n•Executive Summary\n–Summarize your improvement plan for implementing different techniques. (e.g. \nEthical frameworks, ISO related standards, relevant legal requirements, etc.)\n•Current state (Problem)\n–Describe the current state of ethics problem(s) from different case(s) your \nchosen. \n•Proposed solution in Ethics perspective\n–Outline your proposed solution for different tools and theories in your chosen \norganization so as to reduce the risk and enhance the awareness.\n•Plan of action and criteria for success\n–Detail your plan of action for using proposed solution in your chosen organization \nfor solving ethics problem(s). \n\n© 2024 Lotto Lai\nLecture 1\nIntroduction\n10\n\n© 2024 Lotto Lai\nLecture 2\nEthical Management and Analysis\n11\n\n© 2024 Lotto Lai\nLecture 3\nInformation Security (InfoSec) Ethics\n\n© 2024 Lotto Lai\nLecture 4\nAI Ethics\n13\nBoddington, P. (2023). AI ethics: a textbook. \nSpringer Nature.\nExplanation of the Group Project (Gp) \n\n© 2024 Lotto Lai\nLecture 5\nLegal Aspects (1)  Privacy Law in Hong Kong & GDPR\n14\n\n© 2024 Lotto Lai\nLecture 6\nLegal Aspects (2) Computer Related Crime Issues\n15\nhttps://www.hk-lawyer.org/content/consultation-paper-cyber-dependent-crimes-and-jurisdictional-issues-compendium\n\n© 2024 Lotto Lai\nLecture 7\nMid-term Quiz/Test \n16\n\n© 2024 Lotto Lai\nLecture 8\nIP Management (ISO 56005) \n\n© 2024 Lotto Lai\nLecture 9\nEntrepreneurship (I) –Sustainable Development\n18\nGroup Project Proposal \n\n© 2024 Lotto Lai\nLecture 10\nEntrepreneurship (II) –SWOT & QStartupMS\n(Assignment 2) \n\n© 2024 Lotto Lai\nLecture 11 Professional Bodies and Code of Conduct \nGuest Lecture (ICAC) \n\n© 2024 Lotto Lai\nLecture 12 & 13\nGroup Project Presentations \n21\n10 min Presentation \n& 5 min Q&A\n\n© 2024 Lotto Lai\n22",
+      "flashcards": [
+        {
+          "question": "What is the primary objective of the course on Legal Aspects and Ethics of Computing?",
+          "answer": "The primary objective is to equip students with knowledge regarding social responsibilities and ethics of computing professionals, including awareness of legal, ethical, and security responsibilities."
+        },
+        {
+          "question": "What percentage of the course assessment is based on individual versus group work?",
+          "answer": "The course assessment is 60% individual and 40% group work."
+        },
+        {
+          "question": "Which ISO standard is mentioned in relation to Intellectual Property Management?",
+          "answer": "ISO 56005 is mentioned in relation to Intellectual Property Management."
+        },
+        {
+          "question": "What are the two categories of Intended Learning Outcomes for the course?",
+          "answer": "The two categories are: Category A: Professional/academic knowledge and skills, and Category B: Attributes for all-roundedness."
+        },
+        {
+          "question": "What ethical issues are covered in Lecture 5?",
+          "answer": "Lecture 5 covers Privacy Law in Hong Kong and the General Data Protection Regulation (GDPR)."
+        },
+        {
+          "question": "What is the format for the Group Project Presentation?",
+          "answer": "The format includes an Executive Summary, Current state description, Proposed solution from an Ethics perspective, and a Plan of action with criteria for success."
+        },
+        {
+          "question": "What ethical framework is introduced through Assignment 1?",
+          "answer": "Assignment 1 uses a self-driving car moral machine to explore decision-making based on ethical philosophies."
+        },
+        {
+          "question": "What are some of the key topics explored in the course lectures?",
+          "answer": "Key topics include Ethical Management, Information Security Ethics, AI Ethics, and Legal Aspects related to privacy and computer-related crimes."
+        },
+        {
+          "question": "What is the group project focused on?",
+          "answer": "The group project focuses on selecting a case of ethics-related issues, proposing measures to reduce risks and prevent ethical problems."
+        },
+        {
+          "question": "What is the weight of the individual quiz/test in the overall assessment?",
+          "answer": "The individual quiz/test accounts for 30% of the overall assessment."
+        }
+      ],
+      "summary": "The text outlines the structure and objectives of a course titled \"Legal Aspects and Ethics of Computing,\" led by Lotto Lai. The course is designed to equip students with essential knowledge regarding the social responsibilities, ethical considerations, and legal aspects associated with computing professions. It emphasizes the importance of understanding these elements in the context of the information age, preparing students to navigate ethical dilemmas and legal challenges in their future careers.\n\nThe course is divided into various topics, including ethical management, information security ethics, AI ethics, privacy law (specifically in Hong Kong and GDPR), and computer-related crime issues. Instruction is delivered through a combination of lectures, group projects, and assessments. The assessments are structured as 60% individual work, which includes two assignments and a quiz/test, and 40% group work, involving a project proposal, a PowerPoint presentation, and a final presentation. Each group project requires students to analyze an ethical issue and propose solutions, fostering teamwork and critical thinking.\n\nIntended learning outcomes emphasize the development of professional knowledge in identifying ethical and legal issues, effective communication skills, and independent problem-solving abilities. Students are expected to apply ethical frameworks and legal standards in practical scenarios. The course's assessment methods aim to ensure that students not only grasp theoretical concepts but also can apply them in real-world contexts, preparing them for responsible professional conduct in the computing field. Overall, the course is comprehensive in addressing the multifaceted aspects of ethics and legality in computing, encouraging students to act with integrity in their future careers.",
+      "cornellNotes": {
+        "cues": [
+          "Course Title",
+          "Lecture Topics",
+          "Assessment Weighting",
+          "Learning Objectives",
+          "Course Structure"
+        ],
+        "notes": [
+          "Quality System - Legal Aspects and Ethics of Computing",
+          "1. Subject orientation and introduction to legal aspects (15 Jan)  2. Ethical Management (22 Jan)  3. InfoSec Ethics (29 Jan)  4. AI Ethics (5 Feb)  5. Legal Aspects (Privacy Law) (19 Feb)  6. Legal Aspects (Computer Crime) (26 Feb)  7. Mid-term Quiz (4 Mar)  8. IP Management (11 Mar)  9. Entrepreneurship (1) (18 Mar)  10. Entrepreneurship (2) (25 Mar)  11. Professional Bodies (8 Apr)  12. Final Project Presentations A (15 Apr)  13. Final Project Presentations B (22 Apr)",
+          "Individual Assessment: 60% (Assignments 30%, Test 30%)  Group Assessment: 40% (Project Proposal 10%, Project PPT 20%, Presentations 10%) Total: 100%",
+          "Objectives: Equip students with knowledge on social responsibilities, ethics, and legal challenges in computing. Develop critical reasoning and ethical decision-making.",
+          "Course Structure: Basics of Ethics, Privacy, Intellectual Property, InfoSec, AI, Professional Ethics."
+        ],
+        "summary": "The course 'Legal Aspects and Ethics of Computing' aims to provide students with an understanding of ethical and legal responsibilities in computing. The curriculum includes various topics, assessments, and learning outcomes designed to enhance professional knowledge and critical thinking skills among students. The assessment is divided into individual and group tasks, totaling 100% without final examinations."
+      },
+      "multipleChoice": [
+        {
+          "question": "What is the primary aim of the course 'Legal Aspects and Ethics of Computing'?",
+          "options": [
+            "To prepare students for computing exams",
+            "To equip students with knowledge regarding social responsibilities and ethics in computing",
+            "To teach students about programming languages",
+            "To provide hands-on experience with software development"
+          ],
+          "correctAnswer": 1
+        },
+        {
+          "question": "Which ethical framework is specifically mentioned for use in Assignment 1?",
+          "options": [
+            "Utilitarianism",
+            "Deontological Ethics",
+            "Self-driving car moral machine",
+            "Virtue Ethics"
+          ],
+          "correctAnswer": 2
+        },
+        {
+          "question": "What percentage of the course assessment is dedicated to individual assessments?",
+          "options": [
+            "40%",
+            "60%",
+            "70%",
+            "100%"
+          ],
+          "correctAnswer": 1
+        },
+        {
+          "question": "In the group project presentation, how long is each student typically allotted to present?",
+          "options": [
+            "1 minute",
+            "2 minutes",
+            "5 minutes",
+            "10 minutes"
+          ],
+          "correctAnswer": 1
+        },
+        {
+          "question": "Which legal aspect is covered in the course content on 19 February?",
+          "options": [
+            "Computer Related Crime Issues",
+            "Privacy Law in Hong Kong & GDPR",
+            "Intellectual Property Rights",
+            "AI Ethics"
+          ],
+          "correctAnswer": 1
+        }
+      ],
+      "createdAt": "2025-04-02T06:06:54.762Z",
+      "isMockData": false
     }
   ]
 }

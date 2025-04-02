@@ -1,0 +1,32 @@
+[
+  {
+    "id": "1",
+    "username": "demo_user",
+    "email": "demo@example.com",
+    "name": "Demo User",
+    "bio": "I'm a student using GPTutor to enhance my learning experience.",
+    "profileImage": "https://ui-avatars.com/api/?name=Demo+User&background=0D8ABC&color=fff",
+    "preferences": {
+      "darkMode": true,
+      "emailNotifications": true,
+      "defaultModelType": "github"
+    },
+    "joinDate": "2023-11-15T12:00:00.000Z",
+    "lastLogin": "2023-12-01T10:30:00.000Z"
+  },
+  {
+    "id": "2",
+    "username": "student1",
+    "email": "student1@example.com",
+    "name": "John Smith",
+    "bio": "Computer Science student looking to master new concepts.",
+    "profileImage": "https://ui-avatars.com/api/?name=John+Smith&background=4CAF50&color=fff",
+    "preferences": {
+      "darkMode": false,
+      "emailNotifications": false,
+      "defaultModelType": "github"
+    },
+    "joinDate": "2023-10-25T09:45:00.000Z",
+    "lastLogin": "2023-11-30T16:20:00.000Z"
+  }
+]
