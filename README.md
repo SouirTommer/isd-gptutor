@@ -98,3 +98,13 @@ Set Up the Frontend
 3. Access the Application
 The frontend will be accessible at http://localhost:3000
 The backend server will run on http://localhost:5001
+
+## screenshot
+
+<img width="1024" alt="image" src="https://github.com/user-attachments/assets/3cd731de-14c6-46f2-ab07-ec276cb4319f" />
+<img width="1024" alt="image" src="https://github.com/user-attachments/assets/d7129482-5986-41a9-b9e9-5d20ee3dc041" />
+<img width="1024" alt="image" src="https://github.com/user-attachments/assets/366efed3-bcab-443d-8159-8ddf94a4012f" />
+<img width="1024" alt="image" src="https://github.com/user-attachments/assets/df6cbf0f-e4e2-4da0-a5fd-c9018a0d7b68" />
+<img width="1024" alt="image" src="https://github.com/user-attachments/assets/34d46111-5079-4c6b-a19e-dd39e9f24edc" />
+
+
