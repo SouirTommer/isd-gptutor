@@ -134,22 +134,16 @@ const ChatPanel = ({ pdfId, fileName }) => {
       aria-label="AI Tutor Chat" 
       data-theme="dark"
       style={{ 
-        height: "100%", // Take full height of parent
-        width: "100%",  // Take full width of parent
+        height: "100%",
         display: "flex", 
         flexDirection: "column",
         margin: 0,
         padding: 0,
         borderRadius: "var(--border-radius)",
-        boxShadow: "0 1px 3px rgba(0,0,0,0.12)",
-        overflow: "hidden" // Prevent any content from spilling out
+        boxShadow: "0 1px 3px rgba(0,0,0,0.12)"
       }}
     >
-      <header style={{ 
-        padding: "1rem", 
-        borderBottom: "1px solid var(--card-border-color)",
-        flexShrink: 0 // Prevent header from shrinking
-      }}>
+      <header style={{ padding: "1rem", borderBottom: "1px solid var(--card-border-color)" }}>
         <div className="headings">
           <h3 style={{ margin: 0, fontSize: "1.2rem" }}>
             <i className="fas fa-robot" aria-hidden="true"></i> 
@@ -163,12 +157,11 @@ const ChatPanel = ({ pdfId, fileName }) => {
       
       <div style={{ 
         flex: 1, 
-        overflowY: "auto", // Make only this div scrollable 
+        overflow: "auto", 
         padding: "1rem",
         display: "flex",
         flexDirection: "column",
-        gap: "0.75rem",
-        height: "0", // Allow this to take available space and scroll
+        gap: "0.75rem"
       }}>
         {messages.map((message) => (
           <blockquote 
@@ -213,11 +206,7 @@ const ChatPanel = ({ pdfId, fileName }) => {
         <div ref={messagesEndRef} />
       </div>
       
-      <footer style={{ 
-        padding: "0.75rem", 
-        borderTop: "1px solid var(--card-border-color)",
-        flexShrink: 0 // Prevent footer from shrinking
-      }}>
+      <footer style={{ padding: "0.75rem", borderTop: "1px solid var(--card-border-color)" }}>
         <form onSubmit={handleSendMessage} style={{ margin: 0 }}>
           <div className="grid" style={{ padding: 0, margin: 0 }}>
             <div style={{ gridColumn: "span 10" }}>

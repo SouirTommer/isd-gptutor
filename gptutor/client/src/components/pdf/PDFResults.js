@@ -300,7 +300,7 @@ const PDFResults = () => {
           display: "flex", 
           width: "100%", 
           gap: "1rem",
-          height: "700px" // Set fixed height instead of minHeight
+          minHeight: "700px"
         }}>
           {/* Study materials - exactly 60% width */}
           <div style={{ width: "60%", overflow: "auto" }}>
@@ -321,13 +321,8 @@ const PDFResults = () => {
             }}
           ></div>
           
-          {/* Chat panel section - exactly 40% width with fixed height */}
-          <div style={{ 
-            width: "40%", 
-            padding: "0",
-            height: "100%", // Take full height of parent
-            display: "flex"  // Needed for child to expand
-          }}>
+          {/* Chat panel section - exactly 40% width */}
+          <div style={{ width: "40%", padding: "0" }}>
             <ChatPanel pdfId={id} fileName={results.fileName} />
           </div>
         </div>
