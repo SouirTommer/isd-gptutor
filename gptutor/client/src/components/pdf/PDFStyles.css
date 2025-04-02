@@ -1,0 +1,151 @@
+/* Flashcard animations */.flashcard {  position: relative;  width: 100%;  height: 300px;  perspective: 1000px;  transform-style: preserve-3d;}.flashcard-side {  position: absolute;  width: 100%;  height: 100%;  backface-visibility: hidden;  border-radius: 0.5rem;  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);  background-color: white;  overflow: hidden;  transition: transform 0.6s;}.dark .flashcard-side {  background-color: #1e293b;  color: white;}.flashcard-front {  z-index: 2;}.flashcard-back {  transform: rotateY(180deg);}.flashcard.flipped .flashcard-front {  transform: rotateY(180deg);}.flashcard.flipped .flashcard-back {  transform: rotateY(0deg);}/* Increase font size for flashcard content */.card-content {  font-size: 1.25rem; /* Larger font size */  line-height: 1.5;  text-align: center;}/* Make question and answer headers more prominent */.flashcard-side .text-xl {  font-size: 1.5rem;  font-weight: 700;}/* Focus on readability */.flashcard-front .card-content,.flashcard-back .card-content {  padding: 1.5rem;  display: flex;  align-items: center;  justify-content: center;  height: 100%;}
+
+/* Tab transition effects */
+.tab-loading {
+  opacity: 0;
+  animation: fadeIn 0.4s forwards;
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+/* Make the loading spinner more visible */
+.loading-spinner {
+  animation: spin 1.5s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Cornell Notes styling - improved alignment for multi-row content */
+.cornell-notes {
+  width: 100%;
+  margin-bottom: 2rem;
+}
+
+.cornell-table-container {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow-x: auto; /* Add horizontal scroll for small screens */
+}
+
+.cornell-table {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+  table-layout: fixed; /* Fixed table layout for better alignment */
+}
+
+.cornell-table th,
+.cornell-table td {
+  padding: 0.75rem 1rem;
+  vertical-align: top;
+  line-height: 1.5;
+  word-wrap: break-word; /* Allow long words to break */
+}
+
+.cornell-table th {
+  text-align: left;
+  font-weight: 600;
+}
+
+.cornell-table tr {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.dark .cornell-table tr {
+  border-bottom: 1px solid #374151;
+}
+
+.cue-cell {
+  background-color: rgba(249, 250, 251, 0.5);
+  width: 30%;
+  border-right: 1px solid #e5e7eb;
+  position: relative; /* For proper alignment */
+}
+
+.dark .cue-cell {
+  background-color: rgba(30, 41, 59, 0.5);
+  border-right-color: #374151;
+}
+
+.note-cell {
+  width: 70%;
+}
+
+.cue-content {
+  display: flex;
+  align-items: center; /* Changed from flex-start to center for better vertical alignment */
+  position: relative; /* For proper alignment */
+}
+
+.bullet {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center; /* Center the bullet vertically */
+  justify-content: center; /* Center the bullet horizontally */
+  margin-right: 0.5rem;
+  width: 0.75rem; /* Fixed width for alignment */
+  height: 1.5rem; /* Fixed height for consistent alignment */
+}
+
+/* Add styles for multi-row notes */
+.note-paragraph {
+  margin-bottom: 0.5rem;
+  padding-left: 1rem;
+  position: relative;
+}
+
+.note-paragraph::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  color: rgba(107, 114, 128, 0.7);
+}
+
+.note-paragraph:last-child {
+  margin-bottom: 0;
+}
+
+/* Improved Summary styling */
+.summary {
+  width: 100%;
+  margin-bottom: 2rem;
+}
+
+.summary h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: var(--color-primary-700);
+  display: flex;
+  align-items: center;
+}
+
+.summary-content {
+  background-color: #f9fafb;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+  padding: 1.5rem;
+}
+
+.dark .summary-content {
+  background-color: #1e293b;
+  border-color: #374151;
+}
+
+.summary-content p {
+  margin-bottom: 1rem;
+  line-height: 1.75;
+  text-align: justify;
+  text-indent: 1.5rem;
+  font-size: 1.1rem;
+}
+
+.summary-content p:last-child {
+  margin-bottom: 0;
+}

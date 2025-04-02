@@ -1,16 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const Sidebar = ({ activePage }) => {
   const [decksExpanded, setDecksExpanded] = useState(false);
+  const [studyMaterials, setStudyMaterials] = useState([]);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   
-  const [demoDecks] = useState([
-    { id: 1, name: 'Study Guide', date: '2023-06-15', cards: 8 },
-    { id: 2, name: 'Math 101', date: '2023-06-10', cards: 12 },
-    { id: 3, name: 'Physics Fundamentals', date: '2023-06-05', cards: 6 },
-    { id: 4, name: 'History Notes', date: '2023-05-20', cards: 10 }
-  ]);
+  useEffect(() => {
+    // Fetch all PDFs from the server
+    const fetchStudyMaterials = async () => {
+      try {
+        const response = await axios.get('/api/pdf/all');
+        setStudyMaterials(response.data);
+        setLoading(false);
+      } catch (err) {
+        console.error('Error fetching study materials:', err);
+        setLoading(false);
+      }
+    };
+
+    fetchStudyMaterials();
+  }, []);
   
   const toggleDecks = () => setDecksExpanded(!decksExpanded);
 
@@ -35,7 +47,7 @@ const Sidebar = ({ activePage }) => {
                 : 'hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
             }`}
           >
-            <i className="fas fa-tachometer-alt w-6"></i>
+            <i className="fas fa-chart-line w-6"></i>
             <span className="ml-3">Dashboard</span>
           </Link>
           
@@ -47,7 +59,7 @@ const Sidebar = ({ activePage }) => {
                 : 'hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
             }`}
           >
-            <i className="fas fa-plus-circle w-6"></i>
+            <i className="fas fa-file-upload w-6"></i>
             <span className="ml-3">New Deck</span>
           </Link>
           
@@ -57,7 +69,7 @@ const Sidebar = ({ activePage }) => {
               className={`flex items-center justify-between w-full px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700`}
             >
               <div className="flex items-center">
-                <i className="fas fa-book w-6"></i>
+                <i className="fas fa-bookmark w-6"></i>
                 <span className="ml-3">Your Decks</span>
               </div>
               <i className={`fas fa-chevron-${decksExpanded ? 'down' : 'right'} text-sm`}></i>
@@ -65,16 +77,38 @@ const Sidebar = ({ activePage }) => {
             
             {decksExpanded && (
               <div className="mt-1 ml-6 pl-3 border-l-2 border-gray-200 dark:border-gray-700 space-y-1">
-                {demoDecks.map((deck) => (
-                  <Link
-                    key={deck.id}
-                    to={`/results/${deck.id}`}
-                    className="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg dark:text-gray-300 dark:hover:bg-gray-700"
-                  >
-                    <i className="fas fa-file-alt mr-2"></i>
-                    {deck.name}
-                  </Link>
-                ))}
+                {loading ? (
+                  <div className="py-2 px-3 text-sm text-gray-500 flex items-center">
+                    <i className="fas fa-spinner fa-pulse mr-2"></i> Loading...
+                  </div>
+                ) : studyMaterials.length === 0 ? (
+                  <div className="py-2 px-3 text-sm text-gray-500 flex items-center">
+                    <i className="fas fa-folder-open mr-2"></i> No study materials
+                  </div>
+                ) : (
+                  <>
+                    {studyMaterials.map((material) => (
+                      <Link
+                        key={material.id}
+                        to={`/results/${material.id}`}
+                        className="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg dark:text-gray-300 dark:hover:bg-gray-700"
+                      >
+                        <i className="fas fa-file-alt mr-2 text-gray-500"></i>
+                        {material.fileName.length > 20 
+                          ? material.fileName.substring(0, 20) + '...' 
+                          : material.fileName}
+                      </Link>
+                    ))}
+                    {studyMaterials.length > 0 && (
+                      <Link
+                        to="/dashboard"
+                        className="flex items-center px-3 py-2 text-sm text-primary-600 hover:bg-gray-100 rounded-lg dark:text-primary-400 dark:hover:bg-gray-700"
+                      >
+                        <i className="fas fa-list-alt mr-2"></i> View all materials
+                      </Link>
+                    )}
+                  </>
+                )}
               </div>
             )}
           </div>
@@ -106,7 +140,8 @@ const Sidebar = ({ activePage }) => {
           </div>
         </nav>
         
-        <div className="text-xs text-center py-4 text-gray-500">
+        <div className="text-xs text-center py-4 text-gray-500 flex items-center justify-center">
+          <i className="fas fa-code mr-1"></i>
           <p>© {new Date().getFullYear()} GPTutor</p>
         </div>
       </div>

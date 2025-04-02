@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import ChatPanel from './ChatPanel';
 import MultipleChoice from './MultipleChoice';
+import { recordLearningActivity } from '../../utils/streakUtils';
 // import './PDFStyles.css'; // Import the CSS file
 
 const PDFResults = () => {
@@ -41,6 +42,9 @@ const PDFResults = () => {
             setActiveTab('cornellNotes');
           }
         }
+        
+        // Record learning activity when materials are viewed
+        recordLearningActivity();
         
         // Add a slight delay before removing the loading state
         // to make the loading animation more noticeable
@@ -81,57 +85,29 @@ const PDFResults = () => {
   const handleNextCard = () => {
     if (!results?.flashcards) return;
     
-    // Ensure loading is visible
-    setCardLoading(true);
+    // Simply move to next card without animations
+    if (currentCardIndex < results.flashcards.length - 1) {
+      setCurrentCardIndex(currentCardIndex + 1);
+    } else {
+      setCurrentCardIndex(0); // Loop back to the first card
+    }
     
-    // First slide out current card
-    setSlideAnimation('slide-out-left');
+    // Reset flip state
     setIsFlipped(false);
-    
-    // After animation completes, change card and slide in
-    setTimeout(() => {
-      if (currentCardIndex < results.flashcards.length - 1) {
-        setCurrentCardIndex(currentCardIndex + 1);
-      } else {
-        setCurrentCardIndex(0); // Loop back to the first card
-      }
-      
-      setSlideAnimation('slide-in-right');
-      
-      // Clear animation class after it completes
-      setTimeout(() => {
-        setSlideAnimation('');
-        setCardLoading(false);
-      }, 650); // Increased to match the CSS animation duration
-    }, 650); // Increased to match the CSS animation duration
   };
 
   const handlePrevCard = () => {
     if (!results?.flashcards) return;
     
-    // Ensure loading is visible
-    setCardLoading(true);
+    // Simply move to previous card without animations
+    if (currentCardIndex > 0) {
+      setCurrentCardIndex(currentCardIndex - 1);
+    } else {
+      setCurrentCardIndex(results.flashcards.length - 1); // Loop to the last card
+    }
     
-    // First slide out current card
-    setSlideAnimation('slide-out-right');
+    // Reset flip state
     setIsFlipped(false);
-    
-    // After animation completes, change card and slide in
-    setTimeout(() => {
-      if (currentCardIndex > 0) {
-        setCurrentCardIndex(currentCardIndex - 1);
-      } else {
-        setCurrentCardIndex(results.flashcards.length - 1); // Loop to the last card
-      }
-      
-      setSlideAnimation('slide-in-left');
-      
-      // Clear animation class after it completes
-      setTimeout(() => {
-        setSlideAnimation('');
-        setCardLoading(false);
-      }, 650); // Increased to match the CSS animation duration
-    }, 650); // Increased to match the CSS animation duration
   };
 
   const toggleFlip = () => {
@@ -162,12 +138,7 @@ const PDFResults = () => {
       <div className="flashcards-container">
         <div className="flashcard-wrapper" onClick={toggleFlip}>
           <div className={`flashcard ${isFlipped ? 'flipped' : ''}`}>
-            {cardLoading && (
-              <div className="flashcard-loading absolute inset-0 flex items-center justify-center bg-white dark:bg-gray-800 rounded-lg">
-                <div className="w-12 h-12 border-4 border-primary-500 border-t-transparent rounded-full animate-spin loading-spinner"></div>
-              </div>
-            )}
-            <div className={`flashcard-side flashcard-front ${slideAnimation} flex flex-col`}>
+            <div className="flashcard-side flashcard-front flex flex-col">
               <div className="text-xl font-bold w-full text-center py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-center">
                 <i className="fas fa-question-circle text-primary-500 mr-2"></i> Question {currentCardIndex + 1}
               </div>
@@ -175,7 +146,7 @@ const PDFResults = () => {
                 {currentCard.question}
               </div>
             </div>
-            <div className={`flashcard-side flashcard-back ${slideAnimation} flex flex-col`}>
+            <div className="flashcard-side flashcard-back flex flex-col">
               <div className="text-xl font-bold w-full text-center py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-center">
                 <i className="fas fa-lightbulb text-yellow-500 mr-2"></i> Answer
               </div>
@@ -233,10 +204,14 @@ const PDFResults = () => {
     
     return (
       <div className="summary">
-        <h3><i className="fas fa-file-alt"></i> Document Summary</h3>
+        <h3 className="mb-4">
+          <i className="fas fa-file-alt text-primary-500 mr-2"></i> Document Summary
+        </h3>
         <div className="summary-content">
           {paragraphs.map((paragraph, index) => (
-            <p key={index}>{paragraph}</p>
+            <p key={index} className="text-gray-800 dark:text-gray-200">
+              {paragraph}
+            </p>
           ))}
         </div>
       </div>
@@ -255,44 +230,91 @@ const PDFResults = () => {
     const cues = results.cornellNotes.cues || [];
     const notes = results.cornellNotes.notes || [];
     
-    // Create pairs with matching indices
-    const maxLength = Math.max(cues.length, notes.length);
-    const rows = [];
+    // Process notes to detect multi-line content
+    // This will create a proper data structure that maps cues to corresponding notes
+    const processedData = [];
     
-    for (let i = 0; i < maxLength; i++) {
-      rows.push({
-        cue: i < cues.length ? cues[i] : '',
-        note: i < notes.length ? notes[i] : ''
-      });
+    // First, create a map to collect all notes for each cue index
+    const cueToNotesMap = {};
+    
+    // If notes and cues are mismatched, we need to handle that
+    for (let i = 0; i < Math.max(cues.length, notes.length); i++) {
+      const cue = i < cues.length ? cues[i] : '';
+      const note = i < notes.length ? notes[i] : '';
+      
+      if (cue) {
+        // New cue - start a new entry
+        if (!cueToNotesMap[i]) {
+          cueToNotesMap[i] = [];
+        }
+        cueToNotesMap[i].push(note);
+      } else if (note && i > 0) {
+        // No cue but has a note - this is likely a continuation
+        // Add this note to the previous cue
+        const lastCueIndex = Math.max(...Object.keys(cueToNotesMap).map(Number));
+        if (cueToNotesMap[lastCueIndex]) {
+          cueToNotesMap[lastCueIndex].push(note);
+        }
+      }
     }
+    
+    // Now convert the map to an array of objects for rendering
+    Object.keys(cueToNotesMap).forEach(cueIndex => {
+      processedData.push({
+        cue: cues[cueIndex],
+        notes: cueToNotesMap[cueIndex].filter(note => note) // Remove empty notes
+      });
+    });
     
     return (
       <div className="cornell-notes">
-        <table className="cornell-table">
-          <thead>
-            <tr>
-              <th className="cues-header"><i className="fas fa-list-ul"></i> Cues</th>
-              <th className="notes-header"><i className="fas fa-sticky-note"></i> Notes</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row, index) => (
-              <tr key={index}>
-                <td className="cue-cell">
-                  <div className="cue-content">
-                    {row.cue && <span className="bullet"><i className="fas fa-circle-dot"></i></span>}
-                    {row.cue}
-                  </div>
-                </td>
-                <td className="note-cell">{row.note}</td>
+        <div className="cornell-header mb-4">
+          <h3 className="text-xl font-bold mb-2"><i className="fas fa-columns text-primary-500 mr-2"></i> Cornell Notes</h3>
+        </div>
+
+        <div className="cornell-table-container overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
+          <table className="cornell-table w-full">
+            <thead className="bg-gray-50 dark:bg-gray-800">
+              <tr>
+                <th className="w-1/3 px-4 py-3 text-left text-sm font-semibold text-primary-700 dark:text-primary-400 border-r border-gray-200 dark:border-gray-700">
+                  <i className="fas fa-list-ul mr-2"></i> Cues/Questions
+                </th>
+                <th className="w-2/3 px-4 py-3 text-left text-sm font-semibold text-primary-700 dark:text-primary-400">
+                  <i className="fas fa-sticky-note mr-2"></i> Notes/Answers
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {processedData.map((item, index) => (
+                <tr key={index} className={index % 2 === 0 ? 'bg-white dark:bg-gray-900' : 'bg-gray-50 dark:bg-gray-800'}>
+                  <td className="cue-cell px-4 py-3 border-r border-gray-200 dark:border-gray-700">
+                    {item.cue && (
+                      <div className="cue-content text-gray-800 dark:text-gray-200">
+                        <div className="bullet text-primary-500">
+                          <i className="fas fa-circle text-xs"></i>
+                        </div>
+                        <div className="flex-1">{item.cue}</div>
+                      </div>
+                    )}
+                  </td>
+                  <td className="note-cell px-4 py-3 text-gray-800 dark:text-gray-200">
+                    {item.notes.map((note, noteIndex) => (
+                      <div key={noteIndex} className="note-paragraph">
+                        {note}
+                      </div>
+                    ))}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
         
-        <div className="summary-section">
-          <h3><i className="fas fa-bookmark"></i> Summary</h3>
-          <p>{results.cornellNotes.summary}</p>
+        <div className="summary-section mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+          <h3 className="text-lg font-semibold mb-2 text-primary-700 dark:text-primary-400">
+            <i className="fas fa-bookmark mr-2"></i> Summary
+          </h3>
+          <p className="text-gray-800 dark:text-gray-200">{results.cornellNotes.summary}</p>
         </div>
       </div>
     );
