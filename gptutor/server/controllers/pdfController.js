@@ -1,10 +1,10 @@
-const PDF = require('../models/PDF');
 const fs = require('fs');
 const path = require('path');
 const { promisify } = require('util');
 const pdfParse = require('pdf-parse');
 const OpenAI = require('openai');
 const axios = require('axios');
+const db = require('../utils/dbUtils');
 
 // Initialize OpenAI client
 const openai = new OpenAI({
@@ -15,7 +15,7 @@ const openai = new OpenAI({
 const githubApiEndpoint = process.env.GITHUB_API_ENDPOINT;
 const githubApiKey = process.env.GITHUB_API_KEY;
 
-// In-memory storage for when MongoDB is not available
+// In-memory storage as backup (optional)
 const inMemoryStorage = new Map();
 
 // Debug log function
@@ -42,11 +42,9 @@ const generateMockData = (fileName, formats) => {
       { question: "What is the benefit of using GPTutor?", answer: "It helps students learn more effectively by transforming documents into interactive study materials." }
     ];
   }
-  
   if (formats.summary) {
     results.summary = "GPTutor is an innovative educational application designed to enhance the learning experience by transforming PDF documents into various study formats. The app uses advanced AI technology to extract text from uploaded PDFs and convert it into flashcards for active recall, summaries for quick review, and Cornell notes for structured learning. GPTutor supports multiple AI backends including OpenAI and GitHub APIs, giving users flexibility in how their content is processed. The application is built with a modern web stack and provides an intuitive interface for uploading documents and selecting output formats. Even without a database connection, GPTutor maintains functionality by storing results in memory, ensuring users can still benefit from its features.";
   }
-  
   if (formats.cornellNotes) {
     results.cornellNotes = {
       cues: ["GPTutor Purpose", "Study Formats", "Technology Stack", "AI Integration"],
@@ -59,68 +57,211 @@ const generateMockData = (fileName, formats) => {
       summary: "GPTutor is an AI-powered educational tool that transforms PDF documents into various study formats to enhance learning efficiency, with support for multiple AI backends and robust error handling."
     };
   }
-  
+  if (formats.multipleChoice) {
+    results.multipleChoice = [
+      { 
+        question: "What is the primary purpose of GPTutor?", 
+        options: ["Creating presentations", "Transforming PDFs into study materials", "Writing essays", "Taking notes"], 
+        correctAnswer: 1 
+      },
+      { 
+        question: "Which of these formats is NOT supported by GPTutor?", 
+        options: ["Flashcards", "Cornell Notes", "Mind Maps", "Summaries"], 
+        correctAnswer: 2 
+      },
+      { 
+        question: "What AI technology does GPTutor integrate with?", 
+        options: ["Only OpenAI", "Only GitHub API", "Both OpenAI and GitHub API", "Neither OpenAI nor GitHub API"], 
+        correctAnswer: 2 
+      }
+    ];
+  }
   debugLog("Generated mock data:", results);
   return results;
 };
 
 // Process text with API (OpenAI or GitHub)
 const processWithAPI = async (text, formats, modelType = 'openai') => {
+  console.log("\n\n=============================================");
+  console.log(`🔄 PROCESSING WITH ${modelType.toUpperCase()} API`);
+  console.log("=============================================");
   debugLog(`Processing text with ${modelType} API. Text length: ${text.length}, Formats:`, formats);
   
-  const results = {};
+  // Add this flag to indicate if mock data was used
+  let isMockData = false;
   
-  // Truncate text if it's too long (APIs have token limits)
+  // Check if API keys and endpoints are properly configured
+  if (modelType === 'github') {
+    console.log("\n🔍 GitHub/Azure API configuration check:");
+    console.log("- API endpoint:", githubApiEndpoint || "NOT SET");
+    console.log("- API key present:", !!githubApiKey);
+    console.log("- API key length:", githubApiKey ? githubApiKey.length : 0, "characters");
+    
+    if (!githubApiEndpoint || !githubApiKey) {
+      console.error("\n❌ USING MOCK DATA: GitHub API credentials missing or invalid");
+      console.error("   Check your .env file and make sure GITHUB_API_ENDPOINT and GITHUB_API_KEY are set");
+      isMockData = true;
+      const mockResult = generateMockData("api_credentials_missing.pdf", formats);
+      mockResult.isMockData = true;
+      return mockResult;
+    }
+  } else if (modelType === 'openai') {
+    console.log("\n🔍 OpenAI API configuration check:");
+    console.log("- API key present:", !!process.env.OPENAI_API_KEY);
+    console.log("- API key length:", process.env.OPENAI_API_KEY ? process.env.OPENAI_API_KEY.length : 0, "characters");
+    
+    if (!process.env.OPENAI_API_KEY) {
+      console.error("\n❌ USING MOCK DATA: OpenAI API key missing");
+      console.error("   Check your .env file and make sure OPENAI_API_KEY is set");
+      isMockData = true;
+      const mockResult = generateMockData("api_credentials_missing.pdf", formats);
+      mockResult.isMockData = true;
+      return mockResult;
+    }
+  }
+  
+  // Validate that we have text to process
+  if (!text || text.trim().length < 100) {
+    console.error("\n❌ USING MOCK DATA: Text too short for meaningful processing");
+    console.error(`   Text length: ${text?.length || 0} characters (minimum 100 required)`);
+    isMockData = true;
+    const mockResult = generateMockData("insufficient_text.pdf", formats);
+    mockResult.isMockData = true;
+    return mockResult;
+  }
+
   const truncatedText = text.length > 15000 ? text.substring(0, 15000) + '...' : text;
   
   try {
+    let results;
     if (modelType === 'github') {
-      console.log("Answer using Github API");
-      return await processWithGitHubAPI(truncatedText, formats);
+      console.log("\n🚀 Attempting GitHub/Azure API call...");
+      results = await processWithGitHubAPI(truncatedText, formats);
+      console.log("\n✅ GITHUB/AZURE API CALL SUCCESSFUL");
+      console.log("   Results generated for formats:", Object.keys(results).join(", "));
     } else {
-      // Default to OpenAI
-      return await processWithOpenAI(truncatedText, formats);
+      console.log("\n🚀 Attempting OpenAI API call...");
+      results = await processWithOpenAI(truncatedText, formats);
+      console.log("\n✅ OPENAI API CALL SUCCESSFUL");
+      console.log("   Results generated for formats:", Object.keys(results).join(", "));
     }
+    
+    // Mark as real API data
+    results.isMockData = false;
+    return results;
   } catch (err) {
-    console.error(`Error calling ${modelType} API:`, err);
-    console.log("Falling back to mock data due to API error");
-    return generateMockData("api_error.pdf", formats);
+    console.error("\n❌ USING MOCK DATA: API call failed with error:");
+    console.error(`   Error: ${err.message}`);
+    if (err.response) {
+      console.error(`   Status: ${err.response.status}`);
+      console.error(`   Response data: ${JSON.stringify(err.response.data).substring(0, 200)}...`);
+    }
+    
+    // Generate mock data as fallback
+    isMockData = true;
+    const mockResult = generateMockData("api_error.pdf", formats);
+    mockResult.isMockData = true;
+    return mockResult;
   }
 };
 
 // Process text with GitHub API
 const processWithGitHubAPI = async (text, formats) => {
-  debugLog("Processing with GitHub API");
+  console.log("\n📝 GITHUB/AZURE API PROCESSING START");
   
-  // Format the Azure OpenAI endpoint correctly - using the base URL only
-  const baseUrl = githubApiEndpoint;
-  const azureEndpoint = `${baseUrl}/openai/deployments/gpt-4o-mini/chat/completions?api-version=2023-05-15`;
-  debugLog(`Using Azure OpenAI endpoint: ${azureEndpoint}`);
-  
-  const results = {};
-  const headers = {
-    'api-key': githubApiKey,
-    'Content-Type': 'application/json',
-    'x-ms-model-mesh-model-name': 'gpt-4o-mini'
-  };
-
-  debugLog("GitHub API headers:", {
-    'api-key': 'REDACTED',
-    'Content-Type': 'application/json',
-    'x-ms-model-mesh-model-name': 'gpt-4o-mini'
-  });
-
   try {
-    // Generate flashcards if requested
-    if (formats.flashcards) {
-      debugLog("Generating flashcards with GitHub API");
+    // Validate the API endpoint format
+    if (!githubApiEndpoint || !githubApiEndpoint.startsWith("https://")) {
+      console.error(`\n❌ Invalid API endpoint format: ${githubApiEndpoint}`);
+      throw new Error(`Invalid API endpoint format: ${githubApiEndpoint}`);
+    }
+    
+    // Determine the deployment name based on the endpoint structure
+    let model = "gpt-4o-mini"; // Changed from gpt-4 to gpt-4o-mini
+    let deploymentName = "gpt-4o-mini"; // Changed from gpt-4 to gpt-4o-mini
+    
+    // If the endpoint already includes a deployment path, extract the deployment name
+    if (githubApiEndpoint.includes("/openai/deployments/")) {
+      const parts = githubApiEndpoint.split("/openai/deployments/");
+      if (parts.length > 1) {
+        const subParts = parts[1].split("/");
+        deploymentName = subParts[0];
+        console.log(`\n🔍 Found deployment name in endpoint: ${deploymentName}`);
+      }
+    }
+    
+    // Build the base endpoint (without the deployment)
+    let baseEndpoint;
+    if (githubApiEndpoint.includes("/openai/deployments/")) {
+      baseEndpoint = githubApiEndpoint.split("/openai/deployments/")[0];
+    } else {
+      baseEndpoint = githubApiEndpoint;
+    }
+    
+    // Construct the complete API URL
+    const azureEndpoint = `${baseEndpoint}/openai/deployments/${deploymentName}/chat/completions?api-version=2023-05-15`;
+    
+    console.log(`\n🌐 Using Azure OpenAI endpoint: ${azureEndpoint}`);
+    console.log(`\n🧩 Deployment name: ${deploymentName}`);
+    
+    const results = {};
+    const headers = {
+      'api-key': githubApiKey,
+      'Content-Type': 'application/json',
+      'x-ms-model-mesh-model-name': deploymentName // Add this header for model-mesh systems
+    };
+    
+    console.log("\n🔑 Using API key (last 4 chars):", githubApiKey.slice(-4));
+
+    // Test connection with a simple request before proceeding
+    try {
+      console.log("\n🔍 Testing API connectivity with a simple request...");
+      const testBody = {
+        messages: [
+          { role: "system", content: "You are a test assistant." },
+          { role: "user", content: "Respond with 'API connection successful' if you receive this message." }
+        ],
+        temperature: 0.7,
+        max_tokens: 50,
+        model: deploymentName // Add the model explicitly in the request body
+      };
       
+      console.log("🔄 Test request payload:", JSON.stringify(testBody));
+      
+      const testResponse = await axios.post(
+        azureEndpoint,
+        testBody,
+        { headers, timeout: 15000 }
+      );
+      
+      if (testResponse && testResponse.status === 200) {
+        const content = testResponse.data.choices[0].message.content.trim();
+        console.log("\n✅ TEST REQUEST SUCCESSFUL");
+        console.log(`   Response: "${content}"`);
+      } else {
+        console.error("\n⚠️ Test request returned unexpected status:", testResponse.status);
+      }
+    } catch (testErr) {
+      console.error("\n❌ TEST REQUEST FAILED");
+      console.error(`   Error: ${testErr.message}`);
+      if (testErr.response) {
+        console.error(`   Status: ${testErr.response.status}`);
+        console.error(`   Data: ${JSON.stringify(testErr.response.data).substring(0, 200)}...`);
+      }
+      throw testErr; // Re-throw to handle in the parent function
+    }
+
+    // Process each format sequentially
+    
+    // Process flashcards if requested
+    if (formats.flashcards) {
+      console.log("\n🎴 Generating flashcards...");
       const flashcardsPrompt = `
         Create 5-10 flashcards based on the following text. 
         Format your response as a JSON array of objects with 'question' and 'answer' fields.
         Make the flashcards educational and focus on key concepts.
         
-        Text: ${text}
+        Text: ${text.substring(0, 6000)}
         
         Response format:
         [
@@ -128,105 +269,153 @@ const processWithGitHubAPI = async (text, formats) => {
             "question": "Question 1?",
             "answer": "Answer 1"
           },
-          ...
+          {
+            "question": "Question 2?",
+            "answer": "Answer 2"
+          }
         ]
       `;
       
       const requestBody = {
         messages: [
-          {
-            role: "system",
-            content: "You are an educational assistant that creates high-quality study materials."
+          { 
+            role: "system", 
+            content: "You are an educational assistant that creates high-quality flashcards."
           },
-          {
-            role: "user",
+          { 
+            role: "user", 
             content: flashcardsPrompt
           }
         ],
         temperature: 0.7,
         max_tokens: 2000,
-        model: "gpt-4o-mini"
+        model: deploymentName // Add the model explicitly in the request body
       };
       
-      debugLog("GitHub API request payload:", JSON.stringify(requestBody).substring(0, 200) + "...");
-      
-      const flashcardsResponse = await axios.post(
-        azureEndpoint, 
-        requestBody,
-        { headers }
-      );
-      
-      debugLog("GitHub API flashcards response status:", flashcardsResponse.status);
-      debugLog("GitHub API flashcards response data structure:", 
-        Object.keys(flashcardsResponse.data).join(', ')
-      );
-      
       try {
-        // Extract content from the chat completion response
-        const responseContent = flashcardsResponse.data.choices[0].message.content.trim();
-        debugLog("Response content sample:", responseContent.substring(0, 100) + "...");
-        
-        // Handle markdown code blocks by extracting JSON content
-        let jsonContent = responseContent;
-        if (responseContent.includes("```json")) {
-          jsonContent = responseContent.replace(/```json\n|\n```/g, "");
-          debugLog("Extracted JSON from markdown code block");
-        }
-        
-        results.flashcards = JSON.parse(jsonContent);
-        debugLog("Successfully parsed flashcards JSON");
-      } catch (err) {
-        console.error('Error parsing flashcards JSON from GitHub API:', err);
-        debugLog("Error parsing flashcards JSON. Response data:", 
-          JSON.stringify(flashcardsResponse.data).substring(0, 200) + "..."
+        console.log("\n📤 Sending flashcards request to Azure API...");
+        const response = await axios.post(
+          azureEndpoint, 
+          requestBody, 
+          { headers, timeout: 30000 }
         );
-        results.flashcards = [{ question: "Error generating flashcards", answer: "Please try again with a different document." }];
+        
+        console.log("\n📥 Received flashcards response");
+        
+        if (response && response.data && response.data.choices && response.data.choices[0]) {
+          const responseContent = response.data.choices[0].message.content.trim();
+          console.log(`\n📝 Response content sample (first 100 chars): ${responseContent.substring(0, 100)}...`);
+          
+          // Try to extract JSON from the response text
+          try {
+            // First attempt to parse the content directly
+            results.flashcards = JSON.parse(responseContent);
+            console.log(`\n✅ Successfully parsed flashcards JSON with ${results.flashcards.length} cards`);
+          } catch (parseErr) {
+            console.error("\n❌ Direct JSON parse failed:", parseErr.message);
+            
+            // Try to extract JSON from markdown code blocks if present
+            if (responseContent.includes("```json")) {
+              const jsonContent = responseContent.replace(/```json\n|\n```/g, "");
+              console.log("\n🔍 Extracting JSON from markdown code block");
+              try {
+                results.flashcards = JSON.parse(jsonContent);
+                console.log(`\n✅ Successfully parsed flashcards JSON from code block with ${results.flashcards.length} cards`);
+              } catch (codeErr) {
+                console.error("\n❌ Code block JSON parse failed:", codeErr.message);
+                throw new Error("Failed to parse flashcards JSON from code block");
+              }
+            } else if (responseContent.includes("```")) {
+              const jsonContent = responseContent.replace(/```\n|\n```/g, "");
+              console.log("\n🔍 Extracting from generic code block");
+              try {
+                results.flashcards = JSON.parse(jsonContent);
+                console.log(`\n✅ Successfully parsed flashcards JSON from generic block with ${results.flashcards.length} cards`);
+              } catch (codeErr) {
+                console.error("\n❌ Generic code block parse failed:", codeErr.message);
+                throw new Error("Failed to parse flashcards JSON from generic code block");
+              }
+            } else {
+              // Try with regex to extract JSON array
+              const jsonRegex = /\[\s*{\s*"question"[\s\S]*\}\s*\]/;
+              const match = responseContent.match(jsonRegex);
+              if (match) {
+                try {
+                  results.flashcards = JSON.parse(match[0]);
+                  console.log(`\n✅ Successfully extracted flashcards JSON with regex, found ${results.flashcards.length} cards`);
+                } catch (regexErr) {
+                  console.error("\n❌ Regex extraction failed:", regexErr.message);
+                  throw new Error("Failed to parse flashcards JSON with regex");
+                }
+              } else {
+                throw new Error("No valid JSON array found in flashcards response");
+              }
+            }
+          }
+        } else {
+          console.error("\n❌ Invalid or empty flashcards API response structure");
+          throw new Error("Invalid flashcards API response structure");
+        }
+      } catch (err) {
+        console.error('\n❌ Error processing flashcards:', err.message);
+        console.log("\n⚠️ Will continue processing other formats despite flashcard failure");
+        // Don't rethrow - continue with other formats
       }
     }
-    
-    // Generate summary if requested
+
+    // Process summary if requested
     if (formats.summary) {
-      debugLog("Generating summary with GitHub API");
-      
+      console.log("\n📋 Generating summary...");
       const summaryPrompt = `
         Create a comprehensive summary of the following text. 
         The summary should be about 250-300 words and cover the main points.
         
-        Text: ${text}
+        Text: ${text.substring(0, 8000)}
       `;
       
       const requestBody = {
         messages: [
-          {
-            role: "system",
+          { 
+            role: "system", 
             content: "You are an educational assistant that creates concise, informative summaries."
           },
-          {
-            role: "user",
+          { 
+            role: "user", 
             content: summaryPrompt
           }
         ],
         temperature: 0.7,
         max_tokens: 1000,
-        model: "gpt-4o-mini"
+        model: deploymentName // Add the model explicitly in the request body
       };
       
-      const summaryResponse = await axios.post(
-        azureEndpoint, 
-        requestBody,
-        { headers }
-      );
-      
-      debugLog("GitHub API summary response status:", summaryResponse.status);
-      
-      results.summary = summaryResponse.data.choices[0].message.content.trim();
-      debugLog("Successfully generated summary");
+      try {
+        console.log("\n📤 Sending summary request to Azure API...");
+        const response = await axios.post(
+          azureEndpoint, 
+          requestBody, 
+          { headers, timeout: 30000 }
+        );
+        
+        console.log("\n📥 Received summary response");
+        
+        if (response && response.data && response.data.choices && response.data.choices[0]) {
+          results.summary = response.data.choices[0].message.content.trim();
+          console.log(`\n✅ Successfully generated summary (${results.summary.length} chars)`);
+        } else {
+          console.error("\n❌ Invalid or empty summary API response structure");
+          throw new Error("Invalid summary API response structure");
+        }
+      } catch (err) {
+        console.error('\n❌ Error processing summary:', err.message);
+        console.log("\n⚠️ Will continue processing other formats despite summary failure");
+        // Don't rethrow - continue with other formats
+      }
     }
-    
-    // Generate Cornell notes if requested
+
+    // Process Cornell notes if requested
     if (formats.cornellNotes) {
-      debugLog("Generating Cornell notes with GitHub API");
-      
+      console.log("\n📒 Generating Cornell notes...");
       const cornellPrompt = `
         Create Cornell notes for the following text.
         Format your response as a JSON object with the following structure:
@@ -236,106 +425,234 @@ const processWithGitHubAPI = async (text, formats) => {
           "summary": "Summary text"
         }
         
-        The cues should be key concepts or questions.
-        The notes should be detailed information related to each cue.
-        The summary should be a brief overview of the entire content.
+        Text: ${text.substring(0, 6000)}
+      `;
+      
+      const requestBody = {
+        messages: [
+          { 
+            role: "system", 
+            content: "You are an educational assistant that creates structured Cornell notes."
+          },
+          { 
+            role: "user", 
+            content: cornellPrompt
+          }
+        ],
+        temperature: 0.7,
+        max_tokens: 2000,
+        model: deploymentName // Add the model explicitly in the request body
+      };
+      
+      try {
+        console.log("\n📤 Sending Cornell notes request to Azure API...");
+        const response = await axios.post(
+          azureEndpoint, 
+          requestBody, 
+          { headers, timeout: 30000 }
+        );
         
-        Text: ${text}
+        console.log("\n📥 Received Cornell notes response");
+        
+        if (response && response.data && response.data.choices && response.data.choices[0]) {
+          const responseContent = response.data.choices[0].message.content.trim();
+          console.log(`\n📝 Response content sample (first 100 chars): ${responseContent.substring(0, 100)}...`);
+          
+          // Try to extract JSON from the response text
+          try {
+            // First attempt to parse the content directly
+            results.cornellNotes = JSON.parse(responseContent);
+            console.log("\n✅ Successfully parsed Cornell notes JSON");
+          } catch (parseErr) {
+            console.error("\n❌ Direct JSON parse failed:", parseErr.message);
+            
+            // Try to extract JSON from markdown code blocks if present
+            if (responseContent.includes("```json")) {
+              const jsonContent = responseContent.replace(/```json\n|\n```/g, "");
+              console.log("\n🔍 Extracting JSON from markdown code block");
+              try {
+                results.cornellNotes = JSON.parse(jsonContent);
+                console.log("\n✅ Successfully parsed Cornell notes JSON from code block");
+              } catch (codeErr) {
+                console.error("\n❌ Code block JSON parse failed:", codeErr.message);
+                throw new Error("Failed to parse Cornell notes JSON from code block");
+              }
+            } else if (responseContent.includes("```")) {
+              const jsonContent = responseContent.replace(/```\n|\n```/g, "");
+              console.log("\n🔍 Extracting from generic code block");
+              try {
+                results.cornellNotes = JSON.parse(jsonContent);
+                console.log("\n✅ Successfully parsed Cornell notes JSON from generic block");
+              } catch (codeErr) {
+                console.error("\n❌ Generic code block parse failed:", codeErr.message);
+                throw new Error("Failed to parse Cornell notes JSON from generic code block");
+              }
+            } else {
+              // Try with regex to extract JSON array
+              const jsonRegex = /\[\s*{\s*"question"[\s\S]*\}\s*\]/;
+              const match = responseContent.match(jsonRegex);
+              if (match) {
+                try {
+                  results.cornellNotes = JSON.parse(match[0]);
+                  console.log("\n✅ Successfully extracted Cornell notes JSON with regex");
+                } catch (regexErr) {
+                  console.error("\n❌ Regex extraction failed:", regexErr.message);
+                  throw new Error("Failed to parse Cornell notes JSON with regex");
+                }
+              } else {
+                throw new Error("No valid JSON array found in Cornell notes response");
+              }
+            }
+          }
+        } else {
+          console.error("\n❌ Invalid or empty Cornell notes API response structure");
+          throw new Error("Invalid Cornell notes API response structure");
+        }
+      } catch (err) {
+        console.error('\n❌ Error processing Cornell notes:', err.message);
+        console.log("\n⚠️ Will continue processing other formats despite Cornell notes failure");
+        // Don't rethrow - continue with other formats
+      }
+    }
+
+    // Process multiple choice questions if requested
+    if (formats.multipleChoice) {
+      console.log("\n📊 Generating multiple choice questions");
+      const mcPrompt = `
+        Create 5 multiple choice questions based on the following text.
+        Each question should have 4 possible answers with only one correct answer.
+        Format your response as a JSON array of objects with the following structure:
+        [
+          {
+            "question": "Question text here?",
+            "options": ["Option A", "Option B", "Option C", "Option D"],
+            "correctAnswer": 0  // Index of the correct answer (0-based)
+          }
+        ]
+        Make sure the questions test important concepts from the text.
+        
+        Text: ${text.substring(0, 4000)}
       `;
       
       const requestBody = {
         messages: [
           {
             role: "system",
-            content: "You are an educational assistant that creates structured Cornell notes."
+            content: "You are an educational assistant that creates high-quality multiple choice questions."
           },
           {
             role: "user",
-            content: cornellPrompt
+            content: mcPrompt
           }
         ],
         temperature: 0.7,
         max_tokens: 2000,
-        model: "gpt-4o-mini"
+        model: deploymentName // Add the model explicitly to the request body
       };
       
-      const cornellResponse = await axios.post(
-        azureEndpoint, 
-        requestBody,
-        { headers }
-      );
-      
-      debugLog("GitHub API Cornell notes response status:", cornellResponse.status);
+      console.log("\n📤 Sending multiple choice request to API...");
+      console.log("🔄 Request payload:", JSON.stringify(requestBody).substring(0, 300) + "...");
       
       try {
-        const responseContent = cornellResponse.data.choices[0].message.content.trim();
-        
-        // Handle markdown code blocks by extracting JSON content
-        let jsonContent = responseContent;
-        if (responseContent.includes("```json")) {
-          jsonContent = responseContent.replace(/```json\n|\n```/g, "");
-          debugLog("Extracted JSON from markdown code block");
-        }
-        
-        results.cornellNotes = JSON.parse(jsonContent);
-        debugLog("Successfully parsed Cornell notes JSON");
-      } catch (err) {
-        console.error('Error parsing Cornell notes JSON from GitHub API:', err);
-        debugLog("Error parsing Cornell notes JSON. Response data:", 
-          JSON.stringify(cornellResponse.data).substring(0, 200) + "..."
+        const mcResponse = await axios.post(
+          azureEndpoint, 
+          requestBody, 
+          { headers, timeout: 30000 }
         );
-        results.cornellNotes = {
-          cues: ["Error"],
-          notes: ["Could not generate Cornell notes. Please try again with a different document."],
-          summary: "Error generating Cornell notes."
-        };
+        
+        console.log(`\n📥 Multiple choice API response received (status: ${mcResponse.status})`);
+        
+        if (mcResponse && mcResponse.data && mcResponse.data.choices && mcResponse.data.choices[0]) {
+          const responseContent = mcResponse.data.choices[0].message.content.trim();
+          console.log("\n📝 Response content preview:", responseContent.substring(0, 100) + "...");
+          
+          let jsonContent = responseContent;
+          
+          // Try to extract JSON from markdown code blocks if present
+          if (responseContent.includes("```json")) {
+            jsonContent = responseContent.replace(/```json\n|\n```/g, "");
+            console.log("\n🔍 Extracted JSON from markdown code block");
+          } else if (responseContent.includes("```")) {
+            jsonContent = responseContent.replace(/```\n|\n```/g, "");
+            console.log("\n🔍 Extracted from generic code block");
+          }
+          
+          // Clean up any trailing commas which can cause JSON parse errors
+          jsonContent = jsonContent.replace(/,(\s*[\]}])/g, '$1');
+          
+          try {
+            results.multipleChoice = JSON.parse(jsonContent);
+            console.log(`\n✅ Successfully parsed multiple choice JSON with ${results.multipleChoice.length} questions`);
+          } catch (parseErr) {
+            console.error("\n❌ JSON parse failed:", parseErr.message);
+            console.log("\n🔍 Trying alternative parsing approaches...");
+            
+            // Try to extract anything that looks like JSON array
+            const jsonMatch = jsonContent.match(/\[\s*\{.*\}\s*\]/s);
+            if (jsonMatch) {
+              try {
+                results.multipleChoice = JSON.parse(jsonMatch[0]);
+                console.log("\n✅ Successfully extracted JSON with regex");
+              } catch (matchErr) {
+                console.error("\n❌ Regex extraction failed:", matchErr.message);
+                throw new Error("Failed to parse even with regex extraction");
+              }
+            } else {
+              throw new Error("No JSON array pattern found");
+            }
+          }
+        } else {
+          console.error("\n❌ Invalid or empty API response structure");
+          throw new Error("Invalid API response structure");
+        }
+      } catch (err) {
+        console.error('\n❌ Error processing multiple choice response:', err.message);
+        throw err; // Rethrow to trigger the fallback in the parent function
       }
     }
     
-    debugLog("GitHub API processing completed successfully");
+    console.log("\n✅ GITHUB/AZURE API PROCESSING COMPLETED SUCCESSFULLY");
     return results;
   } catch (err) {
-    console.error('Error with GitHub API:', err);
-    debugLog("GitHub API error details:", {
-      message: err.message,
-      response: err.response ? {
-        status: err.response.status,
-        statusText: err.response.statusText,
-        data: err.response.data
-      } : "No response"
-    });
-    throw new Error('Failed to process with GitHub API');
+    console.error('\n❌ ERROR WITH GITHUB/AZURE API:', err.message);
+    
+    // Log detailed error information
+    if (err.response) {
+      console.error('\n🔴 API response error:');
+      console.error(`   Status: ${err.response.status}`);
+      console.error(`   Status text: ${err.response.statusText}`);
+      console.error(`   Data: ${JSON.stringify(err.response.data).substring(0, 500)}...`);
+    } else if (err.request) {
+      console.error('\n🔴 API request error - no response received');
+    } else {
+      console.error('\n🔴 Error setting up API request:', err.message);
+    }
+    
+    throw err; // Rethrow to trigger the fallback in the parent function
   }
 };
 
 // Process text with OpenAI
 const processWithOpenAI = async (text, formats) => {
   debugLog("Processing with OpenAI API");
-  
   const results = {};
-  
   try {
-    // Generate flashcards if requested
     if (formats.flashcards) {
       debugLog("Generating flashcards with OpenAI API");
-      
       const flashcardsPrompt = `
         Create 5-10 flashcards based on the following text. 
         Format your response as a JSON array of objects with 'question' and 'answer' fields.
         Make the flashcards educational and focus on key concepts.
-        
         Text: ${text}
-        
         Response format:
         [
           {
             "question": "Question 1?",
             "answer": "Answer 1"
-          },
+          }
           ...
         ]
       `;
-      
       const flashcardsResponse = await openai.chat.completions.create({
         model: "gpt-4o-mini",
         messages: [
@@ -344,9 +661,7 @@ const processWithOpenAI = async (text, formats) => {
         ],
         temperature: 0.7,
       });
-      
       debugLog("OpenAI flashcards response received");
-      
       try {
         results.flashcards = JSON.parse(flashcardsResponse.choices[0].message.content.trim());
         debugLog("Successfully parsed flashcards JSON");
@@ -356,18 +671,13 @@ const processWithOpenAI = async (text, formats) => {
         results.flashcards = [{ question: "Error generating flashcards", answer: "Please try again with a different document." }];
       }
     }
-    
-    // Generate summary if requested
     if (formats.summary) {
       debugLog("Generating summary with OpenAI API");
-      
       const summaryPrompt = `
         Create a comprehensive summary of the following text. 
         The summary should be about 250-300 words and cover the main points.
-        
         Text: ${text}
       `;
-      
       const summaryResponse = await openai.chat.completions.create({
         model: "gpt-4o-mini",
         messages: [
@@ -376,17 +686,12 @@ const processWithOpenAI = async (text, formats) => {
         ],
         temperature: 0.7,
       });
-      
       debugLog("OpenAI summary response received");
-      
       results.summary = summaryResponse.choices[0].message.content.trim();
       debugLog("Successfully generated summary");
     }
-    
-    // Generate Cornell notes if requested
     if (formats.cornellNotes) {
       debugLog("Generating Cornell notes with OpenAI API");
-      
       const cornellPrompt = `
         Create Cornell notes for the following text.
         Format your response as a JSON object with the following structure:
@@ -395,14 +700,11 @@ const processWithOpenAI = async (text, formats) => {
           "notes": ["Note 1", "Note 2", ...],
           "summary": "Summary text"
         }
-        
         The cues should be key concepts or questions.
         The notes should be detailed information related to each cue.
         The summary should be a brief overview of the entire content.
-        
         Text: ${text}
       `;
-      
       const cornellResponse = await openai.chat.completions.create({
         model: "gpt-4o-mini",
         messages: [
@@ -411,9 +713,7 @@ const processWithOpenAI = async (text, formats) => {
         ],
         temperature: 0.7,
       });
-      
       debugLog("OpenAI Cornell notes response received");
-      
       try {
         results.cornellNotes = JSON.parse(cornellResponse.choices[0].message.content.trim());
         debugLog("Successfully parsed Cornell notes JSON");
@@ -427,7 +727,46 @@ const processWithOpenAI = async (text, formats) => {
         };
       }
     }
-    
+    if (formats.multipleChoice) {
+      debugLog("Generating multiple choice questions with OpenAI API");
+      const mcPrompt = `
+        Create 5-10 multiple choice questions based on the following text.
+        Each question should have 4 possible answers with only one correct answer.
+        Format your response as a JSON array of objects with the following structure:
+        [
+          {
+            "question": "Question text here?",
+            "options": ["Option A", "Option B", "Option C", "Option D"],
+            "correctAnswer": 0  // Index of the correct answer (0-based)
+          }
+        ]
+        Make sure the questions test important concepts from the text, and include a mix of difficulty levels.
+        Text: ${text}
+      `;
+      const mcResponse = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: "You are an educational assistant that creates high-quality multiple choice questions." },
+          { role: "user", content: mcPrompt }
+        ],
+        temperature: 0.7,
+      });
+      debugLog("OpenAI MC response received");
+      try {
+        results.multipleChoice = JSON.parse(mcResponse.choices[0].message.content.trim());
+        debugLog("Successfully parsed multiple choice JSON");
+      } catch (err) {
+        console.error('Error parsing multiple choice JSON:', err);
+        debugLog("Error parsing multiple choice JSON. Response content:", mcResponse.choices[0].message.content);
+        results.multipleChoice = [
+          { 
+            question: "Error generating multiple choice questions", 
+            options: ["Try again", "Refresh the page", "Upload a different document", "Contact support"], 
+            correctAnswer: 2 
+          }
+        ];
+      }
+    }
     debugLog("OpenAI processing completed successfully");
     return results;
   } catch (err) {
@@ -440,13 +779,6 @@ const processWithOpenAI = async (text, formats) => {
     });
     throw new Error('Failed to process with OpenAI API');
   }
-};
-
-// Helper function to check if MongoDB is connected
-const isMongoConnected = () => {
-  const connected = PDF.db && PDF.db.readyState === 1;
-  debugLog(`MongoDB connection status: ${connected ? 'Connected' : 'Disconnected'}`);
-  return connected;
 };
 
 // Upload and process PDF
@@ -505,18 +837,15 @@ exports.uploadPDF = async (req, res) => {
           return;
         }
       } catch (pdfError) {
-        // Clean up the temporary file if it exists
         if (fs.existsSync(tempFilePath)) {
           fs.unlinkSync(tempFilePath);
           debugLog("Temporary file removed after error");
         }
-        
         debugLog("PDF parsing error:", {
           message: pdfError.message,
           details: pdfError.details,
           stack: pdfError.stack
         });
-        
         usedMockData = true;
         const processedResults = generateMockData(pdfFile.name, outputFormats);
         storeAndReturnResults(pdfFile.name, "Mock text for unparseable PDF", processedResults, res);
@@ -528,7 +857,6 @@ exports.uploadPDF = async (req, res) => {
         message: err.message,
         stack: err.stack
       });
-      
       usedMockData = true;
       const processedResults = generateMockData(pdfFile.name, outputFormats);
       storeAndReturnResults(pdfFile.name, "Mock text for file handling error", processedResults, res);
@@ -547,7 +875,6 @@ exports.uploadPDF = async (req, res) => {
         message: err.message,
         stack: err.stack
       });
-      
       usedMockData = true;
       const processedResults = generateMockData(pdfFile.name, outputFormats);
       storeAndReturnResults(pdfFile.name, "Mock text for API processing failure", processedResults, res);
@@ -567,73 +894,49 @@ exports.uploadPDF = async (req, res) => {
 const storeAndReturnResults = (fileName, text, processedResults, res) => {
   debugLog(`Storing results for ${fileName}`);
   
-  // Generate a unique ID
-  const id = Date.now().toString();
-  debugLog(`Generated ID: ${id}`);
+  console.log("\n===========================================");
+  console.log("📊 PROCESSED RESULTS SUMMARY");
+  console.log("===========================================");
+  console.log(`📄 File: ${fileName}`);
+  console.log(`📝 Text length: ${text?.length || 0} characters`);
+  console.log(`🎴 Flashcards: ${processedResults.flashcards?.length || 0}`);
+  console.log(`📋 Summary: ${processedResults.summary ? 'Yes' : 'No'}`);
+  console.log(`📝 Cornell Notes: ${processedResults.cornellNotes ? 'Yes' : 'No'}`);
+  console.log(`❓ Multiple Choice: ${processedResults.multipleChoice?.length || 0} questions`);
+  console.log(`🤖 Using Mock Data: ${processedResults.isMockData ? 'YES' : 'No'}`);
+  console.log("===========================================\n");
   
-  // Store the results (either in MongoDB or in-memory)
-  if (isMongoConnected()) {
-    debugLog("Storing results in MongoDB");
-    // Save results to database
-    const newPDF = new PDF({
-      fileName: fileName,
-      originalText: text,
-      ...processedResults
-    });
-    
-    newPDF.save()
-      .then(() => {
-        debugLog(`Results saved to MongoDB with ID: ${newPDF._id}`);
-        res.json({ 
-          id: newPDF._id,
-          message: 'PDF processed successfully' 
-        });
-      })
-      .catch(err => {
-        console.error('Error saving to MongoDB:', err);
-        debugLog("MongoDB save error:", {
-          message: err.message,
-          code: err.code,
-          name: err.name
-        });
-        
-        // Fallback to in-memory if MongoDB save fails
-        debugLog("Falling back to in-memory storage due to MongoDB save error");
-        const result = {
-          id,
-          fileName: fileName,
-          originalText: text,
-          ...processedResults,
-          createdAt: new Date()
-        };
-        
-        inMemoryStorage.set(id, result);
-        debugLog(`Results stored in memory with ID: ${id}`);
-        
-        res.json({ 
-          id,
-          message: 'PDF processed successfully (stored in memory due to database error)' 
-        });
-      });
-  } else {
-    // Store in memory if MongoDB is not available
-    debugLog("Storing results in memory (MongoDB not connected)");
-    const result = {
-      id,
-      fileName: fileName,
-      originalText: text,
-      ...processedResults,
-      createdAt: new Date()
-    };
-    
-    inMemoryStorage.set(id, result);
-    debugLog(`Results stored in memory with ID: ${id}`);
-    
-    res.json({ 
-      id,
-      message: 'PDF processed successfully (stored in memory)' 
-    });
+  // Force multipleChoice to be included
+  if (!processedResults.multipleChoice) {
+    // Always include a multipleChoice property even if it's an empty array
+    processedResults.multipleChoice = [];
   }
+  
+  // Create the PDF record with all required properties
+  const pdfRecord = {
+    id: Date.now().toString(),
+    fileName: fileName,
+    originalText: text,
+    flashcards: processedResults.flashcards || [],
+    summary: processedResults.summary || "",
+    cornellNotes: processedResults.cornellNotes || null,
+    multipleChoice: processedResults.multipleChoice, // Will never be undefined
+    createdAt: new Date().toISOString(),
+    isMockData: processedResults.isMockData || false
+  };
+  
+  // Save to JSON DB
+  const savedPdf = db.savePdf(pdfRecord);
+  debugLog(`Results saved to JSON DB with ID: ${savedPdf.id}`);
+  
+  // Also keep in memory as backup
+  inMemoryStorage.set(savedPdf.id, savedPdf);
+  
+  res.json({ 
+    id: savedPdf.id,
+    message: 'PDF processed successfully',
+    isMockData: savedPdf.isMockData || false
+  });
 };
 
 // Get processed results
@@ -642,109 +945,139 @@ exports.getResults = async (req, res) => {
   debugLog(`Get results request for ID: ${id}`);
   
   try {
-    // Check if MongoDB is connected
-    if (isMongoConnected()) {
-      try {
-        debugLog(`Attempting to find results in MongoDB with ID: ${id}`);
-        const pdf = await PDF.findById(id);
-        
-        if (!pdf) {
-          debugLog(`Results not found in MongoDB, checking in-memory storage`);
-          // If not found in MongoDB, check in-memory storage
-          const memoryResult = inMemoryStorage.get(id);
-          if (memoryResult) {
-            debugLog(`Results found in memory storage`);
-            // Return results from in-memory storage
-            const { id: resultId, fileName, flashcards, summary, cornellNotes, createdAt } = memoryResult;
-            
-            return res.json({
-              id: resultId,
-              fileName,
-              flashcards,
-              summary,
-              cornellNotes,
-              createdAt
-            });
-          }
-          
-          debugLog(`Results not found in either MongoDB or memory storage`);
-          return res.status(404).json({ message: 'Results not found' });
-        }
-        
-        debugLog(`Results found in MongoDB`);
-        // Return results without the full text to reduce payload size
-        const { _id, fileName, flashcards, summary, cornellNotes, createdAt } = pdf;
-        
-        res.json({
-          id: _id,
-          fileName,
-          flashcards,
-          summary,
-          cornellNotes,
-          createdAt
-        });
-      } catch (err) {
-        console.error('Error fetching from MongoDB:', err);
-        debugLog("MongoDB fetch error:", {
-          message: err.message,
-          name: err.name,
-          kind: err.kind,
-          value: err.value,
-          path: err.path
-        });
-        
-        // If MongoDB query fails, check in-memory storage
-        debugLog(`Checking in-memory storage due to MongoDB error`);
-        const memoryResult = inMemoryStorage.get(id);
-        if (memoryResult) {
-          debugLog(`Results found in memory storage`);
-          // Return results from in-memory storage
-          const { id: resultId, fileName, flashcards, summary, cornellNotes, createdAt } = memoryResult;
-          
-          return res.json({
-            id: resultId,
-            fileName,
-            flashcards,
-            summary,
-            cornellNotes,
-            createdAt
-          });
-        }
-        
-        debugLog(`Results not found in memory storage`);
-        return res.status(404).json({ message: 'Results not found' });
-      }
-    } else {
-      // Use in-memory storage if MongoDB is not available
-      debugLog(`MongoDB not connected, checking in-memory storage`);
-      const result = inMemoryStorage.get(id);
+    // First try to get from local JSON database
+    const jsonDbResult = db.getPdf(id);
+    
+    if (jsonDbResult) {
+      debugLog(`Results found in JSON database`);
       
-      if (!result) {
-        debugLog(`Results not found in memory storage`);
-        return res.status(404).json({ message: 'Results not found' });
-      }
+      // Convert the results to ensure multipleChoice exists
+      const resultWithMC = {
+        id: jsonDbResult.id,
+        fileName: jsonDbResult.fileName,
+        flashcards: jsonDbResult.flashcards || [],
+        summary: jsonDbResult.summary || "",
+        cornellNotes: jsonDbResult.cornellNotes || null,
+        multipleChoice: jsonDbResult.multipleChoice || [], // Ensure this exists
+        createdAt: jsonDbResult.createdAt
+      };
       
+      // Log available formats for debugging
+      debugLog(`Available formats: flashcards=${!!resultWithMC.flashcards}, summary=${!!resultWithMC.summary}, cornellNotes=${!!resultWithMC.cornellNotes}, multipleChoice=${!!resultWithMC.multipleChoice}`);
+      
+      return res.json(resultWithMC);
+    }
+    
+    // Check memory storage as backup
+    const memoryResult = inMemoryStorage.get(id);
+    if (memoryResult) {
       debugLog(`Results found in memory storage`);
-      // Return results without the full text to reduce payload size
-      const { id: resultId, fileName, flashcards, summary, cornellNotes, createdAt } = result;
+      // Return results from in-memory storage
+      const { id: resultId, fileName, flashcards, summary, cornellNotes, multipleChoice, createdAt } = memoryResult;
       
-      res.json({
+      return res.json({
         id: resultId,
         fileName,
-        flashcards,
+        flashcards: flashcards || [],
         summary,
         cornellNotes,
+        multipleChoice: multipleChoice || [],
         createdAt
       });
     }
     
+    // Not found in any storage
+    debugLog(`Results not found in any storage`);
+    return res.status(404).json({ message: 'Results not found' });
+    
   } catch (err) {
     console.error('Error fetching results:', err);
-    debugLog("Unhandled error in getResults:", {
+    debugLog("Error in getResults:", {
       message: err.message,
       stack: err.stack
     });
     res.status(500).json({ message: 'Server error fetching results' });
+  }
+};
+
+// Get all PDFs
+exports.getAllPDFs = async (req, res) => {
+  debugLog('Get all PDFs request received');
+  
+  try {
+    // Get PDFs from JSON DB
+    const pdfs = db.getAllPdfs().map(pdf => ({
+      id: pdf.id,
+      fileName: pdf.fileName,
+      createdAt: pdf.createdAt
+    }));
+    
+    // Sort by createdAt (newest first)
+    pdfs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    
+    debugLog(`Found ${pdfs.length} PDFs in JSON DB`);
+    res.json(pdfs);
+  } catch (err) {
+    console.error('Error getting all PDFs:', err);
+    res.status(500).json({ message: 'Server error getting all PDFs' });
+  }
+};
+
+// Add helper for creating test data
+exports.createTestData = async (req, res) => {
+  try {
+    // Generate some test data with guaranteed multiple choice questions
+    const mockData = {
+      fileName: "Test-Document-" + new Date().toISOString().split('T')[0] + ".pdf",
+      originalText: "This is a test document created to verify multiple choice functionality.",
+      flashcards: [
+        { question: "What is GPTutor?", answer: "An AI-powered educational tool" },
+        { question: "What formats does it support?", answer: "Flashcards, Summaries, Cornell Notes, and Multiple Choice" }
+      ],
+      summary: "This is a test summary to demonstrate GPTutor's functionality.",
+      cornellNotes: {
+        cues: ["GPTutor Features", "Benefits"],
+        notes: ["Supports multiple study formats", "Makes studying from PDFs easier"],
+        summary: "GPTutor transforms PDFs into various study formats."
+      },
+      multipleChoice: [
+        {
+          question: "What type of application is GPTutor?",
+          options: ["Video editor", "Study tool", "Programming IDE", "Game"],
+          correctAnswer: 1
+        },
+        {
+          question: "Which of these is NOT a feature of GPTutor?",
+          options: ["Flashcards", "Multiple Choice Questions", "Video Tutorials", "Cornell Notes"],
+          correctAnswer: 2
+        },
+        {
+          question: "What does GPTutor process?",
+          options: ["Images", "Videos", "PDFs", "Audio files"],
+          correctAnswer: 2
+        }
+      ]
+    };
+    
+    // Save to database
+    const savedPdf = db.savePdf(mockData);
+    
+    // Also save in memory
+    inMemoryStorage.set(savedPdf.id, savedPdf);
+    
+    res.json({
+      success: true,
+      message: 'Test data created successfully',
+      id: savedPdf.id,
+      testData: {
+        fileName: savedPdf.fileName,
+        hasMultipleChoice: Array.isArray(savedPdf.multipleChoice) && savedPdf.multipleChoice.length > 0,
+        multipleChoiceCount: savedPdf.multipleChoice?.length || 0
+      }
+    });
+  } catch (err) {
+    console.error('Error creating test data:', err);
+    res.status(500).json({ success: false, message: 'Error creating test data' });
   }
 };
 
@@ -753,7 +1086,6 @@ exports.chatWithPDF = async (req, res) => {
   console.log('====================================');
   console.log('⚠️ CHAT ENDPOINT CALLED', new Date().toISOString());
   console.log('REQUEST BODY:', JSON.stringify(req.body));
-  
   const { pdfId, message } = req.body;
   debugLog(`Chat request received for PDF ID: ${pdfId}`);
   debugLog(`User message: ${message}`);
@@ -768,30 +1100,15 @@ exports.chatWithPDF = async (req, res) => {
     let pdfText = '';
     let pdfFileName = '';
     
-    // Try to find PDF in MongoDB
-    if (isMongoConnected()) {
-      console.log('Looking for PDF in MongoDB');
-      try {
-        const pdf = await PDF.findById(pdfId);
-        if (pdf) {
-          pdfText = pdf.originalText;
-          pdfFileName = pdf.fileName;
-          debugLog(`Found PDF in MongoDB: ${pdfFileName}`);
-          console.log(`✅ Found PDF in MongoDB: ${pdfFileName}, text length: ${pdfText.length}`);
-        } else {
-          console.log('❌ PDF NOT found in MongoDB');
-        }
-      } catch (err) {
-        console.log('❌ Error querying MongoDB:', err.message);
-        debugLog("Error retrieving PDF from MongoDB:", {
-          message: err.message,
-          stack: err.stack
-        });
-      }
-    }
-    
-    // If not found in MongoDB, check in-memory storage
-    if (!pdfText) {
+    // Look for PDF in JSON DB
+    const jsonDbResult = db.getPdf(pdfId);
+    if (jsonDbResult) {
+      pdfText = jsonDbResult.originalText;
+      pdfFileName = jsonDbResult.fileName;
+      debugLog(`Found PDF in JSON DB: ${pdfFileName}`);
+      console.log(`✅ Found PDF in JSON DB: ${pdfFileName}, text length: ${pdfText.length}`);
+    } else {
+      // Check in-memory storage as backup
       console.log('Looking for PDF in memory storage');
       const memoryResult = inMemoryStorage.get(pdfId);
       if (memoryResult) {
@@ -800,8 +1117,8 @@ exports.chatWithPDF = async (req, res) => {
         debugLog(`Found PDF in memory storage: ${pdfFileName}`);
         console.log(`✅ Found PDF in memory storage: ${pdfFileName}, text length: ${pdfText.length}`);
       } else {
-        console.log('❌ PDF NOT found in memory storage');
-        debugLog("PDF not found in either MongoDB or memory storage");
+        console.log('❌ PDF NOT found in any storage');
+        debugLog("PDF not found in either JSON DB or memory storage");
         return res.status(404).json({ message: 'PDF not found' });
       }
     }
@@ -811,59 +1128,72 @@ exports.chatWithPDF = async (req, res) => {
       You are an educational assistant helping a user understand a document titled "${pdfFileName}".
       Use the following document content to answer the user's question.
       If you can't answer based on the document, say so politely.
-      
       Document content: ${pdfText.substring(0, 15000)} ${pdfText.length > 15000 ? '...(content truncated)' : ''}
-      
       User question: ${message}
     `;
     
+    const apiEndpoint = githubApiEndpoint;
+    
+    // Determine the deployment name
+    let deploymentName = "gpt-4o-mini"; // Changed from gpt-4 to gpt-4o-mini
+    if (apiEndpoint.includes("/openai/deployments/")) {
+      const parts = apiEndpoint.split("/openai/deployments/");
+      if (parts.length > 1) {
+        const subParts = parts[1].split("/");
+        deploymentName = subParts[0];
+      }
+    }
+    
+    // Build the base endpoint (without the deployment)
+    let baseEndpoint = apiEndpoint;
+    if (apiEndpoint.includes("/openai/deployments/")) {
+      baseEndpoint = apiEndpoint.split("/openai/deployments/")[0];
+    }
+    
+    // Construct the complete API URL
+    const azureEndpoint = `${baseEndpoint}/openai/deployments/${deploymentName}/chat/completions?api-version=2023-05-15`;
+    console.log("🔄 Using endpoint for chat:", azureEndpoint);
+    
+    const requestBody = {
+      messages: [
+        {
+          role: "system",
+          content: "You are an educational AI tutor that helps students understand document content. Provide helpful, concise responses."
+        },
+        {
+          role: "user",
+          content: contextPrompt
+        }
+      ],
+      temperature: 0.7,
+      max_tokens: 1000,
+      model: deploymentName // Add the model explicitly to the request body
+    };
+    
+    const headers = {
+      'api-key': githubApiKey,
+      'Content-Type': 'application/json',
+      'x-ms-model-mesh-model-name': deploymentName // Add this header for model-mesh systems
+    };
+    
+    let reply;
     try {
-      let reply;
-      
-      // Use GitHub API
-      const baseUrl = githubApiEndpoint;
-      const azureEndpoint = `${baseUrl}/openai/deployments/gpt-4o-mini/chat/completions?api-version=2023-05-15`;
-      
-      const requestBody = {
-        messages: [
-          {
-            role: "system",
-            content: "You are an educational AI tutor that helps students understand document content. Provide helpful, concise responses."
-          },
-          {
-            role: "user",
-            content: contextPrompt
-          }
-        ],
-        temperature: 0.7,
-        max_tokens: 1000,
-        model: "gpt-4o-mini"
-      };
-      
-      const headers = {
-        'api-key': githubApiKey,
-        'Content-Type': 'application/json',
-        'x-ms-model-mesh-model-name': 'gpt-4o-mini'
-      };
-      
       const response = await axios.post(
-        azureEndpoint,
-        requestBody,
+        azureEndpoint, 
+        requestBody, 
         { headers }
       );
-      
-      reply = response.data.choices[0].message.content.trim();
       debugLog("AI response generated");
-      
+      reply = response.data.choices[0].message.content.trim();
       res.json({ reply });
     } catch (err) {
+      console.error("Error generating AI response:", err);
       debugLog("Error generating AI response:", {
         message: err.message,
         stack: err.stack
       });
-      
       // Provide a fallback response
-      res.json({ 
+      res.json({
         reply: "I'm having trouble analyzing this document right now. Please try asking a different question or try again later."
       });
     }
