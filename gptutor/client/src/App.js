@@ -2,7 +2,8 @@ import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Home from './pages/Home';
 import AppLayout from './components/layout/AppLayout';
-import UploadPDF from './components/pdf/UploadPDF';
+// import UploadPDF from './components/pdf/UploadPDF';
+import UploadPDF from './pages/Upload.js';
 import PDFResults from './components/pdf/PDFResults';
 import Dashboard from './pages/Dashboard';
 

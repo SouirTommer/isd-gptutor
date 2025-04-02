@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import ChatPanel from './ChatPanel';
 import MultipleChoice from './MultipleChoice';
+// import './PDFStyles.css'; // Import the CSS file
 
 const PDFResults = () => {
   const { id } = useParams();
@@ -13,6 +14,8 @@ const PDFResults = () => {
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [slideAnimation, setSlideAnimation] = useState('');
+  const [cardLoading, setCardLoading] = useState(false); // Added state for flashcard loading
+  const [tabLoading, setTabLoading] = useState(false); // New state for loading animation
 
   useEffect(() => {
     const fetchResults = async () => {
@@ -39,7 +42,11 @@ const PDFResults = () => {
           }
         }
         
-        setLoading(false);
+        // Add a slight delay before removing the loading state
+        // to make the loading animation more noticeable
+        setTimeout(() => {
+          setLoading(false);
+        }, 800);
       } catch (err) {
         console.error('Error fetching results:', err);
         setError('Error fetching results. Please try again.');
@@ -57,8 +64,25 @@ const PDFResults = () => {
     setCurrentCardIndex(0);
   }, [activeTab]);
 
+  // Function to handle tab changes with more visible and longer loading animation
+  const handleTabChange = (tab) => {
+    if (tab === activeTab) return;
+    
+    setTabLoading(true);
+    // Use longer delay for more visible animation
+    setTimeout(() => {
+      setActiveTab(tab);
+      setTimeout(() => {
+        setTabLoading(false);
+      }, 100); // Short delay after tab switch to ensure loading animation is seen
+    }, 300); // Increased to 800ms for more visible loading
+  };
+
   const handleNextCard = () => {
     if (!results?.flashcards) return;
+    
+    // Ensure loading is visible
+    setCardLoading(true);
     
     // First slide out current card
     setSlideAnimation('slide-out-left');
@@ -77,12 +101,16 @@ const PDFResults = () => {
       // Clear animation class after it completes
       setTimeout(() => {
         setSlideAnimation('');
-      }, 150);
-    }, 150);
+        setCardLoading(false);
+      }, 650); // Increased to match the CSS animation duration
+    }, 650); // Increased to match the CSS animation duration
   };
 
   const handlePrevCard = () => {
     if (!results?.flashcards) return;
+    
+    // Ensure loading is visible
+    setCardLoading(true);
     
     // First slide out current card
     setSlideAnimation('slide-out-right');
@@ -101,17 +129,31 @@ const PDFResults = () => {
       // Clear animation class after it completes
       setTimeout(() => {
         setSlideAnimation('');
-      }, 150);
-    }, 150);
+        setCardLoading(false);
+      }, 650); // Increased to match the CSS animation duration
+    }, 650); // Increased to match the CSS animation duration
   };
 
   const toggleFlip = () => {
     setIsFlipped(!isFlipped);
   };
 
+  // Loading placeholder component with improved animation
+  const renderLoadingPlaceholder = () => (
+    <div className="flex flex-col items-center justify-center p-12 h-64 tab-loading">
+      <div className="w-16 h-16 border-4 border-primary-500 border-t-transparent rounded-full animate-spin mb-4 loading-spinner"></div>
+      <p className="text-github-text-secondary dark:text-gray-400 mt-2">Loading content...</p>
+    </div>
+  );
+
   const renderFlashcards = () => {
     if (!results?.flashcards || results.flashcards.length === 0) {
-      return <p>No flashcards available</p>;
+      return (
+        <div className="text-center py-8">
+          <i className="fas fa-exclamation-circle text-4xl text-gray-400 mb-3"></i>
+          <p>No flashcards available</p>
+        </div>
+      );
     }
     
     const currentCard = results.flashcards[currentCardIndex];
@@ -120,34 +162,71 @@ const PDFResults = () => {
       <div className="flashcards-container">
         <div className="flashcard-wrapper" onClick={toggleFlip}>
           <div className={`flashcard ${isFlipped ? 'flipped' : ''}`}>
-            <div className={`flashcard-side flashcard-front ${slideAnimation}`}>
-              <span className="card-label">Question {currentCardIndex + 1} <i className="fas fa-question-circle"></i></span>
-              <div className="card-content">{currentCard.question}</div>
+            {cardLoading && (
+              <div className="flashcard-loading absolute inset-0 flex items-center justify-center bg-white dark:bg-gray-800 rounded-lg">
+                <div className="w-12 h-12 border-4 border-primary-500 border-t-transparent rounded-full animate-spin loading-spinner"></div>
+              </div>
+            )}
+            <div className={`flashcard-side flashcard-front ${slideAnimation} flex flex-col`}>
+              <div className="text-xl font-bold w-full text-center py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-center">
+                <i className="fas fa-question-circle text-primary-500 mr-2"></i> Question {currentCardIndex + 1}
+              </div>
+              <div className="card-content flex-1 flex items-center justify-center p-4">
+                {currentCard.question}
+              </div>
             </div>
-            <div className={`flashcard-side flashcard-back ${slideAnimation}`}>
-              <span className="card-label">Answer <i className="fas fa-lightbulb"></i></span>
-              <div className="card-content">{currentCard.answer}</div>
+            <div className={`flashcard-side flashcard-back ${slideAnimation} flex flex-col`}>
+              <div className="text-xl font-bold w-full text-center py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-center">
+                <i className="fas fa-lightbulb text-yellow-500 mr-2"></i> Answer
+              </div>
+              <div className="card-content flex-1 flex items-center justify-center p-4">
+                {currentCard.answer}
+              </div>
             </div>
           </div>
         </div>
         
-        <div className="flashcard-navigation">
-          <button onClick={(e) => { e.stopPropagation(); handlePrevCard(); }}><i className="fas fa-chevron-left"></i> Previous</button>
-          <button onClick={(e) => { e.stopPropagation(); toggleFlip(); }}>
-            {isFlipped ? <><i className="fas fa-eye"></i> Show Question</> : <><i className="fas fa-eye"></i> Show Answer</>}
+        <div className="flashcard-navigation flex justify-center items-center space-x-3 mt-4">
+          <button 
+            onClick={(e) => { e.stopPropagation(); handlePrevCard(); }}
+            className="btn btn-outline flex items-center px-4 py-2"
+          >
+            <i className="fas fa-chevron-left mr-2"></i> Previous
           </button>
-          <button onClick={(e) => { e.stopPropagation(); handleNextCard(); }}>Next <i className="fas fa-chevron-right"></i></button>
+          
+          <button 
+            onClick={(e) => { e.stopPropagation(); toggleFlip(); }}
+            className="btn btn-primary flex items-center px-4 py-2"
+          >
+            {isFlipped ? 
+              <><i className="fas fa-sync-alt mr-2"></i> Show Question</> : 
+              <><i className="fas fa-eye mr-2"></i> Show Answer</>}
+          </button>
+          
+          <button 
+            onClick={(e) => { e.stopPropagation(); handleNextCard(); }}
+            className="btn btn-outline flex items-center px-4 py-2"
+          >
+            Next <i className="fas fa-chevron-right ml-2"></i>
+          </button>
         </div>
         
-        <div className="flashcard-progress">
-          <i className="fas fa-book-open"></i> Card {currentCardIndex + 1} of {results.flashcards.length}
+        <div className="flashcard-progress text-center mt-3 flex items-center justify-center">
+          <i className="fas fa-book-open mr-2 text-primary-500"></i> 
+          <span>Card {currentCardIndex + 1} of {results.flashcards.length}</span>
+          <i className="fas fa-graduation-cap ml-2 text-primary-500"></i>
         </div>
       </div>
     );
   };
 
   const renderSummary = () => {
-    if (!results?.summary) return <p>No summary available</p>;
+    if (!results?.summary) return (
+      <div className="text-center py-8">
+        <i className="fas fa-file-alt text-4xl text-gray-400 mb-3"></i>
+        <p>No summary available</p>
+      </div>
+    );
     
     // Split the summary into paragraphs
     const paragraphs = results.summary.split(/\n+/).filter(p => p.trim() !== '');
@@ -165,7 +244,12 @@ const PDFResults = () => {
   };
 
   const renderCornellNotes = () => {
-    if (!results?.cornellNotes) return <p>No Cornell notes available</p>;
+    if (!results?.cornellNotes) return (
+      <div className="text-center py-8">
+        <i className="fas fa-columns text-4xl text-gray-400 mb-3"></i>
+        <p>No Cornell notes available</p>
+      </div>
+    );
     
     // Get the arrays or default to empty arrays
     const cues = results.cornellNotes.cues || [];
@@ -221,23 +305,6 @@ const PDFResults = () => {
     return <MultipleChoice questions={results?.multipleChoice || []} />;
   };
 
-  // Debug component to check data structure
-  const renderDebugInfo = () => {
-    if (!results) return null;
-    
-    return (
-      <div className="mt-4 p-4 bg-gray-800 rounded-lg text-xs overflow-auto max-h-40">
-        <h4 className="font-bold mb-2">Available study formats:</h4>
-        <ul>
-          <li>Flashcards: {results.flashcards ? results.flashcards.length : 0} cards</li>
-          <li>Multiple Choice: {results.multipleChoice ? results.multipleChoice.length : 0} questions</li>
-          <li>Summary: {results.summary ? 'Yes' : 'No'}</li>
-          <li>Cornell Notes: {results.cornellNotes ? 'Yes' : 'No'}</li>
-        </ul>
-      </div>
-    );
-  };
-
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -284,8 +351,11 @@ const PDFResults = () => {
   return (
     <div className="container mx-auto px-4 py-6">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-1">Study Materials</h1>
-        <h2 className="text-sm text-gray-500 flex items-center">
+        <h1 className="text-3xl font-bold mb-1 flex items-center">
+          <i className="fas fa-graduation-cap text-primary-500 mr-3"></i>
+          Study Materials
+        </h1>
+        <h2 className="text-sm text-gray-500 flex items-center ml-1">
           <i className="fas fa-file-pdf mr-2"></i> {results.fileName}
         </h2>
       </div>
@@ -294,7 +364,7 @@ const PDFResults = () => {
         <nav className="flex space-x-1 border-b border-gray-200">
           {results?.flashcards && results.flashcards.length > 0 && (
             <button
-              onClick={() => setActiveTab('flashcards')}
+              onClick={() => handleTabChange('flashcards')}
               className={`px-4 py-2 font-medium text-sm rounded-t-lg ${
                 activeTab === 'flashcards'
                   ? 'bg-primary-100 text-primary-700 border-b-2 border-primary-500'
@@ -308,7 +378,7 @@ const PDFResults = () => {
           {/* FIXED: Remove array length check - just check if property exists */}
           {results && 'multipleChoice' in results && (
             <button
-              onClick={() => setActiveTab('multipleChoice')}
+              onClick={() => handleTabChange('multipleChoice')}
               className={`px-4 py-2 font-medium text-sm rounded-t-lg ${
                 activeTab === 'multipleChoice'
                   ? 'bg-primary-100 text-primary-700 border-b-2 border-primary-500'
@@ -321,7 +391,7 @@ const PDFResults = () => {
           
           {results.summary && (
             <button
-              onClick={() => setActiveTab('summary')}
+              onClick={() => handleTabChange('summary')}
               className={`px-4 py-2 font-medium text-sm rounded-t-lg ${
                 activeTab === 'summary'
                   ? 'bg-primary-100 text-primary-700 border-b-2 border-primary-500'
@@ -334,7 +404,7 @@ const PDFResults = () => {
           
           {results.cornellNotes && (
             <button
-              onClick={() => setActiveTab('cornellNotes')}
+              onClick={() => handleTabChange('cornellNotes')}
               className={`px-4 py-2 font-medium text-sm rounded-t-lg ${
                 activeTab === 'cornellNotes'
                   ? 'bg-primary-100 text-primary-700 border-b-2 border-primary-500'
@@ -351,29 +421,23 @@ const PDFResults = () => {
       <div className="flex flex-col md:flex-row gap-6">
         {/* Study materials - 60% width */}
         <div className="w-full md:w-3/5">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 h-full">
-            {activeTab === 'flashcards' && renderFlashcards()}
-            {activeTab === 'multipleChoice' && renderMultipleChoice()}
-            {activeTab === 'summary' && renderSummary()}
-            {activeTab === 'cornellNotes' && renderCornellNotes()}
-            
-            {/* Add a debug section that shows what tabs should be visible */}
-            <div className="mt-8 p-4 bg-gray-100 dark:bg-gray-700 rounded-lg text-xs">
-              <p>Debug Info:</p>
-              <ul>
-                <li>Active Tab: {activeTab}</li>
-                <li>Flashcards available: {results?.flashcards ? 'Yes' : 'No'} (Count: {results?.flashcards?.length || 0})</li>
-                <li>Multiple Choice available: {results?.multipleChoice ? 'Yes' : 'No'} (Count: {results?.multipleChoice?.length || 0})</li>
-                <li>Summary available: {results?.summary ? 'Yes' : 'No'}</li>
-                <li>Cornell Notes available: {results?.cornellNotes ? 'Yes' : 'No'}</li>
-              </ul>
-            </div>
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 h-full overflow-hidden">
+            {tabLoading ? (
+              renderLoadingPlaceholder()
+            ) : (
+              <>
+                {activeTab === 'flashcards' && renderFlashcards()}
+                {activeTab === 'multipleChoice' && renderMultipleChoice()}
+                {activeTab === 'summary' && renderSummary()}
+                {activeTab === 'cornellNotes' && renderCornellNotes()}
+              </>
+            )}
           </div>
         </div>
         
         {/* Chat panel section - 40% width */}
         <div className="w-full md:w-2/5">
-          <ChatPanel pdfId={id} fileName={results.fileName} />
+          <ChatPanel pdfId={id} fileName={results?.fileName} />
         </div>
       </div>
 
@@ -383,6 +447,12 @@ const PDFResults = () => {
           className="btn-outline flex items-center w-auto inline-flex"
         >
           <i className="fas fa-arrow-left mr-2"></i> Process Another PDF
+        </Link>
+        <Link 
+          to="/dashboard" 
+          className="btn-outline flex items-center w-auto inline-flex ml-3"
+        >
+          <i className="fas fa-home mr-2"></i> Back to Dashboard
         </Link>
       </div>
     </div>
