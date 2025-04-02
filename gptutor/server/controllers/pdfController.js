@@ -747,3 +747,134 @@ exports.getResults = async (req, res) => {
     res.status(500).json({ message: 'Server error fetching results' });
   }
 };
+
+// Chat with PDF content
+exports.chatWithPDF = async (req, res) => {
+  console.log('====================================');
+  console.log('⚠️ CHAT ENDPOINT CALLED', new Date().toISOString());
+  console.log('REQUEST BODY:', JSON.stringify(req.body));
+  
+  const { pdfId, message } = req.body;
+  debugLog(`Chat request received for PDF ID: ${pdfId}`);
+  debugLog(`User message: ${message}`);
+  
+  if (!pdfId || !message) {
+    console.log('⚠️ MISSING PARAMETERS', { pdfId, message });
+    debugLog("Missing required parameters");
+    return res.status(400).json({ message: 'PDF ID and message are required' });
+  }
+  
+  try {
+    let pdfText = '';
+    let pdfFileName = '';
+    
+    // Try to find PDF in MongoDB
+    if (isMongoConnected()) {
+      console.log('Looking for PDF in MongoDB');
+      try {
+        const pdf = await PDF.findById(pdfId);
+        if (pdf) {
+          pdfText = pdf.originalText;
+          pdfFileName = pdf.fileName;
+          debugLog(`Found PDF in MongoDB: ${pdfFileName}`);
+          console.log(`✅ Found PDF in MongoDB: ${pdfFileName}, text length: ${pdfText.length}`);
+        } else {
+          console.log('❌ PDF NOT found in MongoDB');
+        }
+      } catch (err) {
+        console.log('❌ Error querying MongoDB:', err.message);
+        debugLog("Error retrieving PDF from MongoDB:", {
+          message: err.message,
+          stack: err.stack
+        });
+      }
+    }
+    
+    // If not found in MongoDB, check in-memory storage
+    if (!pdfText) {
+      console.log('Looking for PDF in memory storage');
+      const memoryResult = inMemoryStorage.get(pdfId);
+      if (memoryResult) {
+        pdfText = memoryResult.originalText;
+        pdfFileName = memoryResult.fileName;
+        debugLog(`Found PDF in memory storage: ${pdfFileName}`);
+        console.log(`✅ Found PDF in memory storage: ${pdfFileName}, text length: ${pdfText.length}`);
+      } else {
+        console.log('❌ PDF NOT found in memory storage');
+        debugLog("PDF not found in either MongoDB or memory storage");
+        return res.status(404).json({ message: 'PDF not found' });
+      }
+    }
+    
+    // Create a contextual prompt for the AI
+    const contextPrompt = `
+      You are an educational assistant helping a user understand a document titled "${pdfFileName}".
+      Use the following document content to answer the user's question.
+      If you can't answer based on the document, say so politely.
+      
+      Document content: ${pdfText.substring(0, 15000)} ${pdfText.length > 15000 ? '...(content truncated)' : ''}
+      
+      User question: ${message}
+    `;
+    
+    try {
+      let reply;
+      
+      // Use GitHub API
+      const baseUrl = githubApiEndpoint;
+      const azureEndpoint = `${baseUrl}/openai/deployments/gpt-4o-mini/chat/completions?api-version=2023-05-15`;
+      
+      const requestBody = {
+        messages: [
+          {
+            role: "system",
+            content: "You are an educational AI tutor that helps students understand document content. Provide helpful, concise responses."
+          },
+          {
+            role: "user",
+            content: contextPrompt
+          }
+        ],
+        temperature: 0.7,
+        max_tokens: 1000,
+        model: "gpt-4o-mini"
+      };
+      
+      const headers = {
+        'api-key': githubApiKey,
+        'Content-Type': 'application/json',
+        'x-ms-model-mesh-model-name': 'gpt-4o-mini'
+      };
+      
+      const response = await axios.post(
+        azureEndpoint,
+        requestBody,
+        { headers }
+      );
+      
+      reply = response.data.choices[0].message.content.trim();
+      debugLog("AI response generated");
+      
+      res.json({ reply });
+    } catch (err) {
+      debugLog("Error generating AI response:", {
+        message: err.message,
+        stack: err.stack
+      });
+      
+      // Provide a fallback response
+      res.json({ 
+        reply: "I'm having trouble analyzing this document right now. Please try asking a different question or try again later."
+      });
+    }
+    
+    console.log('====================================');
+  } catch (err) {
+    console.error('Error in chat endpoint:', err);
+    debugLog("Unhandled error in chatWithPDF:", {
+      message: err.message,
+      stack: err.stack
+    });
+    res.status(500).json({ message: 'Server error processing chat request' });
+  }
+};
