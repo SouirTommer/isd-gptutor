@@ -99,7 +99,7 @@ Set Up the Frontend
 The frontend will be accessible at http://localhost:3000
 The backend server will run on http://localhost:5001
 
-## screenshot
+## Screenshot
 
 <img width="1024" alt="image" src="https://github.com/user-attachments/assets/3cd731de-14c6-46f2-ab07-ec276cb4319f" />
 <img width="1024" alt="image" src="https://github.com/user-attachments/assets/d7129482-5986-41a9-b9e9-5d20ee3dc041" />
