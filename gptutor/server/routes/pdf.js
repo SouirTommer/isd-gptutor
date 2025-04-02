@@ -12,6 +12,11 @@ router.post('/upload', pdfController.uploadPDF);
 // @access  Public
 router.get('/results/:id', pdfController.getResults);
 
+// @route   GET api/pdf/all
+// @desc    Get all PDFs
+// @access  Public
+router.get('/all', pdfController.getAllPDFs);
+
 // @route   POST api/pdf/chat
 // @desc    Chat with the AI about a specific PDF
 // @access  Public
@@ -43,6 +48,87 @@ router.post('/chat-simple', (req, res) => {
   return res.json({
     reply: "This is a test response from the server. Your message was received successfully.",
     success: true
+  });
+});
+
+// Add a test endpoint that creates a PDF record with dummy multiple choice questions
+router.get('/create-test-record', (req, res) => {
+  const fileName = "Test-Document.pdf";
+  
+  // Generate dummy data
+  const mockData = {
+    flashcards: [
+      { question: "What is the capital of France?", answer: "Paris" },
+      { question: "What is 2+2?", answer: "4" }
+    ],
+    summary: "This is a test summary.",
+    cornellNotes: {
+      cues: ["Test cue 1", "Test cue 2"],
+      notes: ["Test note 1", "Test note 2"],
+      summary: "Cornell notes summary"
+    },
+    multipleChoice: [
+      {
+        question: "What is the capital of France?",
+        options: ["London", "Paris", "Berlin", "Madrid"],
+        correctAnswer: 1
+      },
+      {
+        question: "Which planet is closest to the sun?",
+        options: ["Earth", "Mars", "Venus", "Mercury"],
+        correctAnswer: 3
+      }
+    ]
+  };
+  
+  // Create the PDF record
+  const pdfRecord = {
+    id: "test-" + Date.now().toString(),
+    fileName: fileName,
+    originalText: "This is test text content.",
+    flashcards: mockData.flashcards,
+    summary: mockData.summary,
+    cornellNotes: mockData.cornellNotes,
+    multipleChoice: mockData.multipleChoice,
+    createdAt: new Date().toISOString()
+  };
+  
+  // Save to JSON DB
+  const db = require('../utils/dbUtils');
+  const savedPdf = db.savePdf(pdfRecord);
+  
+  // Return the created record ID
+  res.json({
+    message: "Test record created successfully",
+    id: savedPdf.id,
+    data: savedPdf
+  });
+});
+
+// Add a simple endpoint to create test data with guaranteed multiple choice
+router.get('/create-test-data', pdfController.createTestData);
+
+// Add a debug endpoint to show the raw data in db.json
+router.get('/debug-db', (req, res) => {
+  const db = require('../utils/dbUtils');
+  const allData = db.readDb();
+  
+  // Return the entire database content
+  res.json({
+    totalPdfs: allData.pdfs.length,
+    pdfs: allData.pdfs.map(pdf => ({
+      id: pdf.id,
+      fileName: pdf.fileName,
+      hasOriginalText: !!pdf.originalText,
+      originalTextLength: pdf.originalText?.length || 0,
+      createdAt: pdf.createdAt,
+      hasFlashcards: Array.isArray(pdf.flashcards),
+      flashcardsCount: pdf.flashcards?.length || 0,
+      hasSummary: !!pdf.summary,
+      hasCornellNotes: !!pdf.cornellNotes,
+      hasMultipleChoice: Array.isArray(pdf.multipleChoice),
+      multipleChoiceCount: pdf.multipleChoice?.length || 0
+    }))
   });
 });
 
