@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
+import ChatPanel from './ChatPanel';
 
 const PDFResults = () => {
   const { id } = useParams();
@@ -242,14 +243,18 @@ const PDFResults = () => {
   }
 
   return (
-    <div className="container">
+    <div className="container-fluid">
       <article>
         <header>
-          <h1>Study Materials</h1>
-          <p>Generated from: {results.fileName}</p>
+          <hgroup>
+            <h1 className="mb-0">Study Materials</h1>
+            <h2 className="text-muted" style={{ fontSize: '1rem', fontWeight: 'normal' }}>
+              <i className="fas fa-file-pdf"></i> {results.fileName}
+            </h2>
+          </hgroup>
         </header>
 
-        <nav>
+        <nav aria-label="breadcrumb">
           <ul>
             {results.flashcards && (
               <li>
@@ -257,8 +262,9 @@ const PDFResults = () => {
                   href="#flashcards" 
                   onClick={(e) => { e.preventDefault(); setActiveTab('flashcards'); }}
                   className={activeTab === 'flashcards' ? 'secondary' : ''}
+                  role="button"
                 >
-                  Flashcards
+                  <i className="fas fa-clone"></i> Flashcards
                 </a>
               </li>
             )}
@@ -268,8 +274,9 @@ const PDFResults = () => {
                   href="#summary" 
                   onClick={(e) => { e.preventDefault(); setActiveTab('summary'); }}
                   className={activeTab === 'summary' ? 'secondary' : ''}
+                  role="button"
                 >
-                  Summary
+                  <i className="fas fa-file-alt"></i> Summary
                 </a>
               </li>
             )}
@@ -279,22 +286,56 @@ const PDFResults = () => {
                   href="#cornell" 
                   onClick={(e) => { e.preventDefault(); setActiveTab('cornellNotes'); }}
                   className={activeTab === 'cornellNotes' ? 'secondary' : ''}
+                  role="button"
                 >
-                  Cornell Notes
+                  <i className="fas fa-columns"></i> Cornell Notes
                 </a>
               </li>
             )}
           </ul>
         </nav>
 
-        <div className="results-content">
-          {activeTab === 'flashcards' && renderFlashcards()}
-          {activeTab === 'summary' && renderSummary()}
-          {activeTab === 'cornellNotes' && renderCornellNotes()}
+        {/* Main content section with strict 6:4 ratio */}
+        <div style={{ 
+          display: "flex", 
+          width: "100%", 
+          gap: "1rem",
+          height: "700px" // Set fixed height instead of minHeight
+        }}>
+          {/* Study materials - exactly 60% width */}
+          <div style={{ width: "60%", overflow: "auto" }}>
+            <article>
+              {activeTab === 'flashcards' && renderFlashcards()}
+              {activeTab === 'summary' && renderSummary()}
+              {activeTab === 'cornellNotes' && renderCornellNotes()}
+            </article>
+          </div>
+          
+          {/* Vertical divider */}
+          <div 
+            aria-hidden="true" 
+            style={{ 
+              width: "2px",
+              background: "var(--card-border-color)",
+              margin: "0" 
+            }}
+          ></div>
+          
+          {/* Chat panel section - exactly 40% width with fixed height */}
+          <div style={{ 
+            width: "40%", 
+            padding: "0",
+            height: "100%", // Take full height of parent
+            display: "flex"  // Needed for child to expand
+          }}>
+            <ChatPanel pdfId={id} fileName={results.fileName} />
+          </div>
         </div>
 
-        <footer>
-          <Link to="/upload" role="button">Process Another PDF</Link>
+        <footer className="mt-4">
+          <Link to="/upload" role="button" className="contrast outline">
+            <i className="fas fa-arrow-left"></i> Process Another PDF
+          </Link>
         </footer>
       </article>
     </div>

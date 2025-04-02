@@ -73,137 +73,112 @@ const UploadPDF = () => {
   };
 
   return (
-    <div className="container" style={{ maxWidth: '1000px', margin: '0 auto', padding: '2rem 1rem' }}>
-      <header className="text-center" style={{ marginBottom: '2rem' }}>
-        <h1><i className="fas fa-graduation-cap"></i> Upload PDF Document</h1>
-        <p><i className="fas fa-info-circle"></i> Select a PDF file to convert into study materials</p>
+    <div className="container">
+      <header>
+        <h1>Upload PDF</h1>
+        <p>Upload a PDF document to generate study materials</p>
       </header>
 
       {error && (
-        <div className="error-container" style={{ 
-          color: 'var(--form-element-invalid-active-border-color)',
-          padding: '1rem',
-          marginBottom: '1.5rem',
-          borderRadius: 'var(--border-radius)',
-          backgroundColor: 'rgba(var(--form-element-invalid-active-border-color-rgb), 0.1)'
-        }}>
-          <p><i className="fas fa-exclamation-triangle"></i> {error}</p>
+        <div role="alert">
+          <p>{error}</p>
         </div>
       )}
 
       <form onSubmit={handleSubmit}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          {/* PDF Document Upload Card */}
-          <article style={{ padding: '1.5rem', marginBottom: '0' }}>
-            <header>
-              <h3><i className="fas fa-file-pdf"></i> PDF Document Upload</h3>
-            </header>
-            <div>
-              <label htmlFor="pdfFile">
-                Select your PDF file
-                <input
-                  type="file"
-                  id="pdfFile"
-                  accept=".pdf"
-                  onChange={handleFileChange}
-                  required
-                />
-              </label>
-              {file && (
-                <p style={{ marginTop: '0.5rem' }}>
-                  <i className="fas fa-check-circle" style={{ color: 'var(--form-element-valid-active-border-color)' }}></i> Selected: {file.name}
-                </p>
-              )}
-            </div>
-          </article>
+        {/* File upload section - first card */}
+        <article>
+          <header>
+            <h3>1. Select PDF File</h3>
+          </header>
+          <input
+            type="file"
+            id="pdfFile"
+            name="pdfFile"
+            accept=".pdf"
+            onChange={handleFileChange}
+            required
+          />
+          {file && <small>Selected: {file.name}</small>}
+        </article>
+        
+        {/* AI Model section - second card */}
+        <article>
+          <header>
+            <h3>2. Choose AI Model</h3>
+          </header>
+          <fieldset>
+            <label>
+              <input
+                type="radio"
+                name="modelType"
+                value="github"
+                checked={modelType === 'github'}
+                onChange={handleModelChange}
+              />
+              GitHub API
+            </label>
+            <label>
+              <input
+                type="radio"
+                name="modelType"
+                value="openai"
+                checked={modelType === 'openai'}
+                onChange={handleModelChange}
+              />
+              OpenAI
+            </label>
+          </fieldset>
+        </article>
+        
+        {/* Output Formats section - third card */}
+        <article>
+          <header>
+            <h3>3. Select Output Formats</h3>
+          </header>
+          <fieldset>
+            <label>
+              <input
+                type="checkbox"
+                name="flashcards"
+                role="switch"
+                checked={outputFormats.flashcards}
+                onChange={handleCheckboxChange}
+              />
+              Flashcards
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                name="summary"
+                role="switch"
+                checked={outputFormats.summary}
+                onChange={handleCheckboxChange}
+              />
+              Summary
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                name="cornellNotes"
+                role="switch"
+                checked={outputFormats.cornellNotes}
+                onChange={handleCheckboxChange}
+              />
+              Cornell Notes
+            </label>
+          </fieldset>
+        </article>
 
-          {/* AI Model Card */}
-          <article style={{ padding: '1.5rem', marginBottom: '0' }}>
-            <header>
-              <h3><i className="fas fa-robot"></i> AI Model</h3>
-            </header>
-            <div className="grid">
-              <label htmlFor="github">
-                <input
-                  type="radio"
-                  id="github"
-                  name="modelType"
-                  value="github"
-                  checked={modelType === 'github'}
-                  onChange={handleModelChange}
-                />
-                <i className="fab fa-github"></i> GitHub API
-              </label>
-              <label htmlFor="openai">
-                <input
-                  type="radio"
-                  id="openai"
-                  name="modelType"
-                  value="openai"
-                  checked={modelType === 'openai'}
-                  onChange={handleModelChange}
-                />
-                <i className="fas fa-brain"></i> OpenAI
-              </label>
-            </div>
-          </article>
-
-          {/* Output Formats Card */}
-          <article style={{ padding: '1.5rem', marginBottom: '0' }}>
-            <header>
-              <h3><i className="fas fa-cogs"></i> Output Formats</h3>
-            </header>
-            <div>
-              <label htmlFor="flashcards">
-                <input
-                  type="checkbox"
-                  id="flashcards"
-                  name="flashcards"
-                  role="switch"
-                  checked={outputFormats.flashcards}
-                  onChange={handleCheckboxChange}
-                />
-                <i className="fas fa-clone"></i> Flashcards
-              </label>
-              
-              <label htmlFor="summary">
-                <input
-                  type="checkbox"
-                  id="summary"
-                  name="summary"
-                  role="switch"
-                  checked={outputFormats.summary}
-                  onChange={handleCheckboxChange}
-                />
-                <i className="fas fa-file-alt"></i> Summary
-              </label>
-              
-              <label htmlFor="cornellNotes">
-                <input
-                  type="checkbox"
-                  id="cornellNotes"
-                  name="cornellNotes"
-                  role="switch"
-                  checked={outputFormats.cornellNotes}
-                  onChange={handleCheckboxChange}
-                />
-                <i className="fas fa-columns"></i> Cornell Notes
-              </label>
-            </div>
-          </article>
-        </div>
-
-        <div style={{ textAlign: 'center', marginTop: '2rem' }}>
-          <button 
-            type="submit" 
-            className="primary contrast" 
-            aria-busy={loading}
-            disabled={loading}
-            style={{ fontSize: '1.1rem', padding: '.75rem 2rem', backgroundColor: '#00b4d8', border: 'none' }}
-          >
-            {loading ? <><i className="fas fa-spinner fa-spin"></i> Processing...</> : <><i className="fas fa-upload"></i> Upload and Process</>}
-          </button>
-        </div>
+        {/* Submit button */}
+        <button 
+          type="submit" 
+          className="primary"
+          aria-busy={loading}
+          disabled={loading}
+        >
+          {loading ? 'Processing...' : 'Upload and Process'}
+        </button>
       </form>
     </div>
   );
