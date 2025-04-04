@@ -8,6 +8,7 @@ import Dashboard from './pages/Dashboard';
 import Settings from './pages/Settings';
 import Profile from './pages/Profile';
 import Sidebar from './components/layout/Sidebar';
+import { SidebarProvider, useSidebar } from './contexts/SidebarContext';
 
 // Only import Tailwind
 import './index.css';
@@ -23,35 +24,39 @@ function App() {
 
   return (
     <Router>
-      <div className={`min-h-screen ${darkMode ? 'dark' : ''}`}>
-        <div className="flex dark:bg-github-dark min-h-screen">
-          <Sidebar activePage={getActivePage()} />
-          <div className="pl-56 w-full">
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/upload" element={<UploadPDF />} />
-              <Route path="/results/:id" element={<PDFResults />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/profile" element={<Profile />} />
-              {/* Add other routes as needed */}
-            </Routes>
-          </div>
+      <SidebarProvider>
+        <div className={`min-h-screen ${darkMode ? 'dark' : ''}`}>
+          <Routes>
+            {/* Home page rendered without sidebar */}
+            <Route path="/" element={<Home />} />
+            
+            {/* All other routes wrapped with the sidebar layout */}
+            <Route path="/*" element={<MainLayoutWithSidebar />} />
+          </Routes>
         </div>
-      </div>
+      </SidebarProvider>
     </Router>
   );
 }
 
-// Helper function to determine active page for sidebar
-function getActivePage() {
-  const path = window.location.pathname;
-  if (path === '/' || path === '/dashboard') return 'dashboard';
-  if (path === '/upload') return 'new';
-  if (path.startsWith('/results')) return '';
-  if (path === '/settings') return 'settings';
-  if (path === '/profile') return 'profile';
-  return '';
-}
+// Separate component for the main layout with sidebar
+const MainLayoutWithSidebar = () => {
+  const { minimized } = useSidebar();
+  
+  return (
+    <div className="flex dark:bg-github-dark min-h-screen">
+      <Sidebar />
+      <div className={`${minimized ? 'pl-16' : 'pl-56'} w-full transition-all duration-300`}>
+        <Routes>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/upload" element={<UploadPDF />} />
+          <Route path="/results/:id" element={<PDFResults />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/profile" element={<Profile />} />
+        </Routes>
+      </div>
+    </div>
+  );
+};
 
 export default App;

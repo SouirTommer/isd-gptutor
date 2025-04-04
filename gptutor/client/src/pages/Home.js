@@ -8,7 +8,7 @@ const Home = () => {
       <div className="container mx-auto px-4 pt-24 pb-16">
         <div className="text-center max-w-4xl mx-auto">
           <h1 className="text-6xl md:text-7xl font-bold mb-6 text-primary-600 dark:text-primary-400 tracking-tight">
-            <i className="fas fa-brain mr-3"></i>GPTutor
+            <i className="fas fa-message mr-3"></i>GPTutor
           </h1>
           <p className="text-2xl md:text-3xl text-gray-700 dark:text-gray-300 mb-10 leading-relaxed">
             Transform your PDFs into interactive study materials with AI

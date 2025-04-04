@@ -328,9 +328,9 @@ const Dashboard = () => {
       </div>
 
       {/* Main content area */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Left content area (3/4 width) */}
-        <div className="lg:col-span-3 space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left content area (2/3 width) */}
+        <div className="lg:col-span-2 space-y-6">
           {/* Recent Study Materials */}
           <div className="bg-white dark:bg-github-medium border border-gray-200 dark:border-github-border rounded-lg shadow-sm">
             <div className="p-4 border-b border-gray-200 dark:border-github-border bg-gray-50 dark:bg-github-light">
@@ -453,24 +453,10 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Action buttons */}
-          <div className="flex space-x-3">
-            <Link 
-              to="/upload" 
-              className="px-4 py-2 bg-primary-600 hover:bg-primary-700 dark:bg-primary-700 dark:hover:bg-primary-800 text-white rounded-md inline-flex items-center"
-            >
-              <i className="fas fa-plus mr-2"></i> Create New Study Materials
-            </Link>
-            <Link 
-              to="/settings" 
-              className="px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-github-light dark:hover:bg-gray-700 text-gray-800 dark:text-white rounded-md inline-flex items-center"
-            >
-              <i className="fas fa-cog mr-2"></i> Settings
-            </Link>
-          </div>
+
         </div>
 
-        {/* Right sidebar for leaderboard (1/4 width) */}
+        {/* Right sidebar for leaderboard (1/3 width) */}
         <div className="lg:col-span-1">
           {/* Leaderboard Card */}
           <div className="bg-white dark:bg-github-medium border border-gray-200 dark:border-github-border rounded-lg shadow-sm sticky top-4">

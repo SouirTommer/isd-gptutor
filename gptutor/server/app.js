@@ -136,4 +136,10 @@ router.get('/debug-db', (req, res) => {
 router.post('/feynman-questions', pdfController.generateFeynmanQuestions);
 router.post('/feynman-evaluate', pdfController.evaluateFeynmanTeaching);
 
+// Add this with your other route imports
+const audioRoutes = require('./routes/audio');
+
+// Add this with your other app.use statements
+app.use('/api/audio', audioRoutes);
+
 module.exports = router;

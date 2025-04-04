@@ -1208,3 +1208,458 @@ exports.chatWithPDF = async (req, res) => {
     res.status(500).json({ message: 'Server error processing chat request' });
   }
 };
+
+// Generate Feynman mode questions
+exports.generateFeynmanQuestions = async (req, res) => {
+  console.log('====================================');
+  console.log('⚠️ FEYNMAN QUESTIONS ENDPOINT CALLED', new Date().toISOString());
+  console.log('REQUEST BODY:', JSON.stringify(req.body));
+  
+  const { pdfId, text } = req.body;
+  
+  if (!pdfId) {
+    return res.status(400).json({ message: 'PDF ID is required' });
+  }
+  
+  try {
+    let pdfData = null;
+    
+    // Look for PDF in JSON DB
+    const jsonDbResult = db.getPdf(pdfId);
+    if (jsonDbResult) {
+      console.log(`📄 Found PDF in JSON DB: ${jsonDbResult.fileName}`);
+      pdfData = jsonDbResult;
+    } else {
+      return res.status(404).json({ message: 'PDF not found' });
+    }
+    
+    // Get content from either the provided text or stored data
+    let contentText = text;
+    if (!contentText || contentText.length < 100) {
+      if (pdfData.originalText) {
+        contentText = pdfData.originalText;
+      } else if (pdfData.summary) {
+        contentText = pdfData.summary;
+      } else {
+        return res.status(400).json({ message: 'Insufficient document content' });
+      }
+    }
+    
+    // Truncate if necessary
+    const truncatedText = contentText.length > 6000 ? contentText.substring(0, 6000) + '...' : contentText;
+    
+    // Use the Azure/GitHub API to generate questions
+    const githubApiEndpoint = process.env.GITHUB_API_ENDPOINT;
+    const githubApiKey = process.env.GITHUB_API_KEY;
+    
+    // Determine deployment name - default to gpt-4o-mini
+    let deploymentName = "gpt-4o-mini";
+    if (githubApiEndpoint.includes("/openai/deployments/")) {
+      const parts = githubApiEndpoint.split("/openai/deployments/");
+      if (parts.length > 1) {
+        const subParts = parts[1].split("/");
+        deploymentName = subParts[0];
+      }
+    }
+    
+    // Build the endpoint URL
+    let baseEndpoint = githubApiEndpoint;
+    if (githubApiEndpoint.includes("/openai/deployments/")) {
+      baseEndpoint = githubApiEndpoint.split("/openai/deployments/")[0];
+    }
+    
+    // Construct the complete API URL
+    const azureEndpoint = `${baseEndpoint}/openai/deployments/${deploymentName}/chat/completions?api-version=2023-05-15`;
+    console.log("🔄 Using endpoint for Feynman questions:", azureEndpoint);
+    
+    const questionsPrompt = `
+      You are a curious student who wants to learn about the following topic.
+      Generate 5 thought-provoking questions that would help someone deeply understand this material.
+      The questions should cover the key concepts and encourage explanation in simple terms.
+      
+      Text: ${truncatedText}
+      
+      Format your response as a JSON array of strings, with each string being a question.
+      Example: ["Question 1?", "Question 2?", "Question 3?", "Question 4?", "Question 5?"]
+    `;
+    
+    const requestBody = {
+      messages: [
+        {
+          role: "system",
+          content: "You are an AI student who asks thoughtful questions about educational content."
+        },
+        {
+          role: "user",
+          content: questionsPrompt
+        }
+      ],
+      temperature: 0.7,
+      max_tokens: 1000,
+      model: deploymentName
+    };
+    
+    const headers = {
+      'api-key': githubApiKey,
+      'Content-Type': 'application/json',
+      'x-ms-model-mesh-model-name': deploymentName
+    };
+    
+    try {
+      const response = await axios.post(
+        azureEndpoint, 
+        requestBody, 
+        { headers, timeout: 30000 }
+      );
+      
+      console.log("\n📥 Received Feynman questions response");
+      
+      if (response && response.data && response.data.choices && response.data.choices[0]) {
+        const responseContent = response.data.choices[0].message.content.trim();
+        console.log(`\n📝 Response content sample (first 100 chars): ${responseContent.substring(0, 100)}...`);
+        
+        // Try to extract JSON from the response text
+        try {
+          // First attempt to parse the content directly
+          const questions = JSON.parse(responseContent);
+          console.log(`\n✅ Successfully parsed Feynman questions: ${questions.length} questions generated`);
+          return res.json({ questions });
+        } catch (parseErr) {
+          console.error("\n❌ Direct JSON parse failed:", parseErr.message);
+          
+          // Try to extract JSON from markdown code blocks if present
+          if (responseContent.includes("```json")) {
+            const jsonMatch = responseContent.match(/```json\n([\s\S]*?)\n```/);
+            if (jsonMatch && jsonMatch[1]) {
+              try {
+                const questions = JSON.parse(jsonMatch[1]);
+                console.log(`\n✅ Successfully extracted JSON from code block: ${questions.length} questions generated`);
+                return res.json({ questions });
+              } catch (blockParseErr) {
+                console.error("\n❌ Code block JSON parse failed:", blockParseErr.message);
+              }
+            }
+          }
+          
+          // Try regex approach as a last resort
+          const jsonRegex = /\[[\s\S]*?\]/;
+          const jsonMatch = responseContent.match(jsonRegex);
+          if (jsonMatch) {
+            try {
+              const questions = JSON.parse(jsonMatch[0]);
+              console.log(`\n✅ Successfully extracted JSON with regex: ${questions.length} questions generated`);
+              return res.json({ questions });
+            } catch (regexParseErr) {
+              console.error("\n❌ Regex JSON extract failed:", regexParseErr.message);
+            }
+          }
+          
+          // If all parsing attempts fail, return a fallback
+          console.error("\n❌ All parsing attempts failed, using fallback questions");
+          return res.json({
+            questions: [
+              "Can you explain the main concepts covered in this document?",
+              "How would you summarize the key points in simple terms?",
+              "What are the most important takeaways from this material?",
+              "Can you explain how these concepts relate to real-world applications?",
+              "What parts of this material did you find most interesting or important?"
+            ]
+          });
+        }
+      } else {
+        console.error("\n❌ Invalid or empty API response structure");
+        throw new Error("Invalid API response structure");
+      }
+    } catch (apiErr) {
+      console.error('\n❌ Error calling Azure API:', apiErr.message);
+      // Return fallback questions
+      return res.json({
+        questions: [
+          "Can you explain the main concepts covered in this document?",
+          "How would you summarize the key points in simple terms?",
+          "What are the most important takeaways from this material?",
+          "Can you explain how these concepts relate to real-world applications?",
+          "What parts of this material did you find most interesting or important?"
+        ]
+      });
+    }
+  } catch (err) {
+    console.error('Error generating Feynman questions:', err);
+    res.status(500).json({ message: 'Error generating questions' });
+  }
+};
+
+// Evaluate Feynman mode teaching
+exports.evaluateFeynmanTeaching = async (req, res) => {
+  console.log('====================================');
+  console.log('⚠️ FEYNMAN EVALUATION ENDPOINT CALLED', new Date().toISOString());
+  console.log('REQUEST BODY:', JSON.stringify(req.body));
+  
+  const { pdfId, responses, questions } = req.body;
+  
+  if (!pdfId || !responses || !questions) {
+    return res.status(400).json({ message: 'PDF ID, responses, and questions are required' });
+  }
+  
+  try {
+    // Look for PDF in JSON DB to get the original content as reference
+    const jsonDbResult = db.getPdf(pdfId);
+    if (!jsonDbResult) {
+      return res.status(404).json({ message: 'PDF not found' });
+    }
+    
+    // Get document content to use as reference
+    let referenceContent = '';
+    if (jsonDbResult.originalText) {
+      referenceContent = jsonDbResult.originalText;
+    } else if (jsonDbResult.summary) {
+      referenceContent = jsonDbResult.summary;
+    } else {
+      referenceContent = "No reference content available";
+    }
+    
+    // Format questions and responses for evaluation
+    const formattedQA = Object.keys(responses).map(index => {
+      return {
+        question: questions[index],
+        response: responses[index]
+      };
+    });
+
+    // Pre-check for low-effort answers
+    const lowEffortResponses = formattedQA.filter(qa => {
+      const response = qa.response.toLowerCase().trim();
+      return response === "i don't know" || 
+             response === "idk" || 
+             response === "i dont know" || 
+             response.length < 10 ||
+             response.split(' ').length < 3;
+    });
+
+    // If more than 50% of answers are low-effort, provide a low rating immediately
+    if (lowEffortResponses.length > formattedQA.length / 2) {
+      console.log(`\n⚠️ Detected ${lowEffortResponses.length}/${formattedQA.length} low-effort responses`);
+      return res.json({
+        evaluation: {
+          overall: "Your responses show minimal effort to explain the concepts. The Feynman technique requires you to actually attempt to explain ideas in simple terms, which wasn't evident in many of your answers.",
+          strengths: [
+            "You engaged with the exercise",
+            "You were honest about knowledge gaps"
+          ],
+          improvements: [
+            "Try to explain concepts even if you're not completely sure",
+            "Use simple analogies to demonstrate understanding",
+            "Elaborate more on your answers, even with partial knowledge",
+            "Research topics you don't understand before attempting to explain them"
+          ],
+          rating: 1.5 // Low rating for minimal effort
+        }
+      });
+    }
+    
+    // Use GitHub/Azure API for evaluation
+    const githubApiEndpoint = process.env.GITHUB_API_ENDPOINT;
+    const githubApiKey = process.env.GITHUB_API_KEY;
+    
+    // Determine deployment name
+    let deploymentName = "gpt-4o-mini";
+    if (githubApiEndpoint.includes("/openai/deployments/")) {
+      const parts = githubApiEndpoint.split("/openai/deployments/");
+      if (parts.length > 1) {
+        const subParts = parts[1].split("/");
+        deploymentName = subParts[0];
+      }
+    }
+    
+    // Build the endpoint URL
+    let baseEndpoint = githubApiEndpoint;
+    if (githubApiEndpoint.includes("/openai/deployments/")) {
+      baseEndpoint = githubApiEndpoint.split("/openai/deployments/")[0];
+    }
+    
+    // Construct the API URL
+    const azureEndpoint = `${baseEndpoint}/openai/deployments/${deploymentName}/chat/completions?api-version=2023-05-15`;
+    console.log("🔄 Using endpoint for Feynman evaluation:", azureEndpoint);
+    
+    const evaluationPrompt = `
+      You are evaluating a teacher's explanations using the Feynman Technique, where the goal is to explain complex concepts simply.
+      
+      Here are the questions and the teacher's explanations:
+      ${formattedQA.map(qa => `Question: ${qa.question}\nExplanation: ${qa.response}`).join('\n\n')}
+      
+      Reference material:
+      ${referenceContent.substring(0, 2000)}
+      
+      Please evaluate these explanations based on:
+      1. Clarity and simplicity
+      2. Accuracy of content
+      3. Completeness of explanation
+      4. Use of analogies or examples
+      
+      Be strict with your evaluation. For responses that are low effort (e.g., "I don't know", very short answers, or answers that don't attempt to explain the concepts), assign low ratings.
+      
+      Use this rating scale:
+      1 star: Minimal effort or completely incorrect explanations
+      2 stars: Attempt made but explanations are vague, inaccurate, or incomplete
+      3 stars: Adequate explanations with some clarity but room for improvement
+      4 stars: Good explanations that are mostly clear, accurate, and complete
+      5 stars: Excellent explanations that are clear, accurate, complete, and use effective analogies
+      
+      Format your response as a JSON object with the following structure:
+      {
+        "overall": "Overall assessment of the teaching",
+        "strengths": ["Strength 1", "Strength 2", ...],
+        "improvements": ["Area for improvement 1", "Area for improvement 2", ...],
+        "rating": X // Provide a rating from 0-5 (can use decimals, e.g. 3.5) where 5 is excellent
+      }
+    `;
+    
+    const requestBody = {
+      messages: [
+        {
+          role: "system",
+          content: "You are an educational evaluation expert who provides honest and constructive feedback on teaching using the Feynman Technique. Be strict but fair in your evaluations."
+        },
+        {
+          role: "user",
+          content: evaluationPrompt
+        }
+      ],
+      temperature: 0.7,
+      max_tokens: 1000,
+      model: deploymentName
+    };
+    
+    const headers = {
+      'api-key': githubApiKey,
+      'Content-Type': 'application/json',
+      'x-ms-model-mesh-model-name': deploymentName
+    };
+    
+    try {
+      const response = await axios.post(
+        azureEndpoint, 
+        requestBody, 
+        { headers, timeout: 30000 }
+      );
+      
+      console.log("\n📥 Received Feynman evaluation response");
+      
+      if (response && response.data && response.data.choices && response.data.choices[0]) {
+        const responseContent = response.data.choices[0].message.content.trim();
+        console.log(`\n📝 Response content sample (first 100 chars): ${responseContent.substring(0, 100)}...`);
+        
+        // Try to extract JSON from the response text
+        try {
+          // First attempt to parse the content directly
+          const evaluation = JSON.parse(responseContent);
+          
+          // Ensure rating is present and within bounds
+          if (!evaluation.rating && evaluation.rating !== 0) {
+            // Calculate a default rating based on response lengths
+            const avgLength = Object.values(responses).reduce((sum, resp) => sum + resp.length, 0) / Object.values(responses).length;
+            evaluation.rating = Math.min(3, Math.max(1, avgLength / 100)); // Scale based on avg response length, max 3
+          } else {
+            // Ensure rating is between 0 and 5
+            evaluation.rating = Math.max(0, Math.min(5, parseFloat(evaluation.rating)));
+          }
+          
+          console.log(`\n✅ Successfully parsed evaluation JSON with rating: ${evaluation.rating}`);
+          return res.json({ evaluation });
+        } catch (parseErr) {
+          console.error("\n❌ Direct JSON parse failed:", parseErr.message);
+          
+          // Try to extract JSON from markdown code blocks if present
+          if (responseContent.includes("```json")) {
+            const jsonMatch = responseContent.match(/```json\n([\s\S]*?)\n```/);
+            if (jsonMatch && jsonMatch[1]) {
+              try {
+                const evaluation = JSON.parse(jsonMatch[1]);
+                // Apply same rating validation
+                if (!evaluation.rating && evaluation.rating !== 0) {
+                  const avgLength = Object.values(responses).reduce((sum, resp) => sum + resp.length, 0) / Object.values(responses).length;
+                  evaluation.rating = Math.min(3, Math.max(1, avgLength / 100));
+                } else {
+                  evaluation.rating = Math.max(0, Math.min(5, parseFloat(evaluation.rating)));
+                }
+                console.log(`\n✅ Successfully extracted JSON from code block with rating: ${evaluation.rating}`);
+                return res.json({ evaluation });
+              } catch (blockParseErr) {
+                console.error("\n❌ Code block JSON parse failed:", blockParseErr.message);
+              }
+            }
+          }
+          
+          // If parsing fails, return a fallback evaluation
+          console.error("\n❌ All parsing attempts failed, using fallback evaluation");
+          
+          // Check for low-effort responses to determine fallback rating
+          const avgLength = Object.values(responses).reduce((sum, resp) => sum + resp.length, 0) / Object.values(responses).length;
+          const hasLowEffortResponses = Object.values(responses).some(resp => 
+            resp.toLowerCase().includes("i don't know") || 
+            resp.toLowerCase().includes("idk") ||
+            resp.length < 20
+          );
+          
+          const fallbackRating = hasLowEffortResponses ? 1.5 : (avgLength > 100 ? 2.5 : 2.0);
+          
+          return res.json({
+            evaluation: {
+              overall: hasLowEffortResponses 
+                ? "Your responses show minimal effort to explain the concepts. The Feynman technique requires you to attempt to explain ideas in simple terms."
+                : "Thank you for using the Feynman technique. Your explanations show some effort to communicate the ideas, but there's room for improvement in clarity and completeness.",
+              strengths: [
+                "You attempted to engage with the exercise",
+                hasLowEffortResponses ? "You were honest about knowledge gaps" : "You tried to explain some concepts in your own words",
+                avgLength > 100 ? "Some of your responses showed decent length and effort" : "You participated in the learning process"
+              ],
+              improvements: [
+                "Try to explain concepts more thoroughly, even if you're not completely sure",
+                "Use simple analogies to demonstrate understanding",
+                "Elaborate more on your answers with examples",
+                "Focus on breaking down complex ideas into simpler components"
+              ],
+              rating: fallbackRating
+            }
+          });
+        }
+      } else {
+        console.error("\n❌ Invalid or empty API response structure");
+        throw new Error("Invalid API response structure");
+      }
+    } catch (apiErr) {
+      console.error('\n❌ Error calling Azure API:', apiErr.message);
+      
+      // Calculate a basic rating based on response lengths for fallback
+      const avgLength = Object.values(responses).reduce((sum, resp) => sum + resp.length, 0) / Object.values(responses).length;
+      const hasLowEffortResponses = Object.values(responses).some(resp => 
+        resp.toLowerCase().includes("i don't know") || 
+        resp.toLowerCase().includes("idk") ||
+        resp.length < 20
+      );
+      
+      const fallbackRating = hasLowEffortResponses ? 1.5 : (avgLength > 100 ? 2.5 : 2);
+      
+      // Return fallback evaluation
+      return res.json({
+        evaluation: {
+          overall: "Thank you for using the Feynman technique. While we couldn't process your submission automatically, we've provided a basic assessment based on your response length and content.",
+          strengths: [
+            "You participated in the Feynman learning exercise",
+            avgLength > 100 ? "Some of your responses showed decent effort" : "You engaged with the questions"
+          ],
+          improvements: [
+            "Make sure to provide substantial explanations for each question",
+            "Try using analogies to relate complex ideas to everyday concepts",
+            "Ensure you're explaining concepts in simple, accessible language",
+            "Focus on clarity and accuracy in your explanations"
+          ],
+          rating: fallbackRating
+        }
+      });
+    }
+  } catch (err) {
+    console.error('Error evaluating Feynman teaching:', err);
+    res.status(500).json({ message: 'Error evaluating your teaching' });
+  }
+};

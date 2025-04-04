@@ -16,6 +16,7 @@ const Upload = () => {
   const [modelType, setModelType] = useState('github'); // Changed default to 'github'
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showLoadingModal, setShowLoadingModal] = useState(false);
   
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
@@ -93,6 +94,7 @@ const Upload = () => {
 
     setLoading(true);
     setError('');
+    setShowLoadingModal(true); // Show the modal overlay
 
     // Log the values we're sending to help debug
     console.log("Sending request with:", {
@@ -122,11 +124,13 @@ const Upload = () => {
       // Add an artificial delay to make sure loading is visible
       setTimeout(() => {
         setLoading(false);
+        setShowLoadingModal(false); // Hide the modal overlay
         navigate(`/results/${response.data.id}`);
       }, 1500); // Additional 1.5 seconds of loading after response
       
     } catch (err) {
       setLoading(false);
+      setShowLoadingModal(false); // Hide the modal on error
       setError(err.response?.data?.message || 'Error uploading file');
       console.error('Upload error:', err);
     }
@@ -134,6 +138,26 @@ const Upload = () => {
   
   return (
     <div className="container mx-auto px-4 py-6">
+      {/* Loading Modal */}
+      {showLoadingModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+          <div className="bg-white dark:bg-github-medium p-6 rounded-lg shadow-xl max-w-md w-full text-center">
+            <div className="inline-block h-16 w-16 animate-spin rounded-full border-4 border-primary-500 border-t-transparent mb-4"></div>
+            <h3 className="text-xl font-semibold text-github-text-primary dark:text-white mb-2">Processing Your PDF</h3>
+            <p className="text-github-text-secondary dark:text-gray-400 mb-4">
+              Please wait while we analyze your document and generate study materials.
+              This may take a minute or two depending on the size of your document.
+            </p>
+            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 mb-2">
+              <div className="bg-primary-600 h-2.5 rounded-full animate-pulse w-full"></div>
+            </div>
+            <p className="text-sm text-github-text-secondary dark:text-gray-400">
+              Please don't close this window
+            </p>
+          </div>
+        </div>
+      )}
+      
       <header className="mb-6">
         <h2 className="text-2xl font-bold text-github-text-primary dark:text-white flex items-center">
           <i className="fas fa-file-upload text-primary-500 mr-3"></i>
